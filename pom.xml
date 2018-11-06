@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>fr.soleil</groupId>
+        <artifactId>super-pom-C-CPP</artifactId>
+        <version>RELEASE</version>
+    </parent>
+
+    <groupId>fr.soleil.lib.Lima.Camera</groupId>
+    <artifactId>LimaDhyana-${aol}-shared-${mode}</artifactId>
+    <version>1.0.0</version>
+	
+    <packaging>nar</packaging>
+    <name>LimaDhyana</name>
+    <description>This module controls the TUcsen Dhyana Detector</description>
+    
+    <scm>
+        <connection>scm:git:git://github.com/soleil-ica/Lima-camera-dhyana.git</connection>
+        <developerConnection>scm:git:git://github.com/soleil-ica/Lima-camera-dhyana.git</developerConnection>
+        <url>https://github.com/soleil-ica/Lima-camera-dhyana</url>
+    </scm>
+
+    <dependencies>
+        <dependency>
+            <groupId>fr.soleil.lib</groupId>
+            <artifactId>LimaCore-${aol}-shared-${mode}</artifactId>
+            <version>1.7.7</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>fr.soleil.lib</groupId>
+            <artifactId>NexusCPP-${aol}-static-${mode}</artifactId>
+            <version>3.1.5-vc9</version>
+        </dependency>
+				
+        <dependency>
+            <groupId>fr.soleil.lib</groupId>
+            <artifactId>YAT-${aol}-static-${mode}</artifactId>
+            <version>1.13.4-vc9</version>
+        </dependency>
+            
+        <dependency>
+            <groupId>ncsa.uiuc.edu</groupId>
+            <artifactId>HDF5-${aol}-shared-release</artifactId>
+            <version>1.8.13-vc9</version>
+        </dependency>    
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.freehep</groupId>
+                <artifactId>freehep-nar-plugin</artifactId>
+                <configuration>
+                    <cpp>
+                        <sourceDirectory>${project.basedir}</sourceDirectory>                                               
+                        <includePaths>                          
+                            <includePath>include</includePath>
+                            <includePath>x:\DeviceSources\Lima\camera\dhyana\sdk\msvc\include</includePath>
+                        </includePaths>      
+                        <!-- define less verbose mode for gcc-->
+                        <options>
+                            <option>-w</option>
+                        </options>				
+                        <defines>
+                            <define>LIBDHYANA_EXPORTS</define>
+                            <define>WIN32</define>
+                            <define>NDEBUG</define>
+                            <define>_WINDOWS</define>
+                            <define>_USRDLL</define>					
+                            <define>_WIN32_WINNT=0x0502</define> <!-- For Windows XP Support -->
+                        </defines>                  
+                    </cpp>
+                    <linker>
+                        <libs>
+                            <lib>
+                                <!-- tucam -->
+                                <name>TUCam</name>
+                                <type>shared</type>
+                                <directory>x:\DeviceSources\Lima\camera\dhyana\sdk\msvc\lib\x86</directory>
+                            </lib>
+                        </libs>
+                    </linker>	                    
+                    <libraries>
+                        <library>
+                            <type>shared</type>
+                        </library>
+                    </libraries>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+		
+    <developers>
+        <developer>
+            <id>langlois</id>
+            <name>langlois</name>
+            <url>http://controle/</url>
+            <organization>Synchrotron Soleil</organization>
+            <organizationUrl>http://www.synchrotron-soleil.fr</organizationUrl>
+            <roles>
+                <role>manager</role>
+            </roles>
+            <timezone>1</timezone>
+        </developer>
+        <developer>
+            <id>noureddine</id>
+            <name>noureddine</name>
+            <url>http://controle/</url>
+            <organization>Synchrotron Soleil</organization>
+            <organizationUrl>http://www.synchrotron-soleil.fr</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>1</timezone>
+        </developer>
+    </developers>
+    
+</project>
