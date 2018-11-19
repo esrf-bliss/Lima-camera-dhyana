@@ -41,24 +41,6 @@ using namespace std;
 
 
 //---------------------------
-//- utility thread
-//---------------------------
-
-class Camera::AcqThread:public Thread
-{
-	DEB_CLASS_NAMESPC(DebModCamera, "Camera", "AcqThread");
-public:
-	AcqThread(Camera &aCam);
-	virtual ~AcqThread();
-
-protected:
-	virtual void threadFunction();
-
-private:
-	Camera& m_cam;
-};
-
-//---------------------------
 // @brief  Ctor
 //---------------------------
 Camera::Camera():
@@ -66,7 +48,10 @@ m_depth(16),
 m_trig_mode(IntTrig),
 m_status(Ready),
 m_acq_frame_nb(0),
-m_temperature_target(0)
+m_temperature_target(0),
+m_new_acquisition_done(false),
+m_hThdEvent(NULL),
+m_waiting(false)
 {
 
 	DEB_CONSTRUCTOR();
@@ -81,8 +66,10 @@ m_temperature_target(0)
 Camera::~Camera()
 {
 	DEB_DESTRUCTOR();
+	DEB_TRACE() << "Close TUCAM API ...";
 	TUCAM_Dev_Close(m_opCam.hIdxTUCam);// Close camera
-	TUCAM_Api_Uninit();// Initializing SDK API environment
+	DEB_TRACE() << "Uninitialize TUCAM API ...";
+	TUCAM_Api_Uninit();// Uninitialize SDK API environment
 
 	delete m_acq_thread;
 }
@@ -111,7 +98,7 @@ void Camera::init()
 	}
 
 	DEB_TRACE() << "Open TUCAM API ...";
-	//m_opCam.hIdxTUCam = 0;
+	m_opCam.hIdxTUCam = 0;
 	m_opCam.uiIdxOpen = 0;
 
 	if(TUCAMRET_SUCCESS != TUCAM_Dev_Open(&m_opCam))
@@ -124,6 +111,7 @@ void Camera::init()
 	{
 		THROW_HW_ERROR(Error) << "Unable to open the camera !";
 	}
+
 }
 
 //-----------------------------------------------------
@@ -144,9 +132,39 @@ void Camera::reset()
 void Camera::prepareAcq()
 {
 	DEB_MEMBER_FUNCT();
-	//@BEGIN : some stuff on Driver/API before start acquisition
-	//...
-	//@END	
+	AutoMutex lock(m_cond.mutex());
+	//@BEGIN : Ensure that Acquisition is Stopped . Sometimes API TUcam doesn't close correctly !!
+	Timestamp t0 = Timestamp::now();
+	DEB_TRACE() << "Ensure that Acquisition is Stopped ";
+	m_status = Camera::Exposure;
+	m_waiting = true;
+	//@BEGIN : Ensure that Acquisition is Started before return ...
+	DEB_TRACE() << "Ensure that Acquisition is Started  ";
+	if(NULL == m_hThdEvent)
+	{		
+		m_frame.pBuffer = NULL;
+		m_frame.ucFormatGet = TUFRM_FMT_RAW;
+		m_frame.uiRsdSize = 1;// how many frames do you want
+
+		DEB_TRACE() << "TUCAM_Buf_Alloc";
+		TUCAM_Buf_Alloc(m_opCam.hIdxTUCam, &m_frame);// Alloc buffer after set resolution or set ROI attribute
+
+		DEB_TRACE() << "TUCAM_Cap_Start";
+		if(m_trigger_mode == IntTrig)
+			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE);// Start capture in software trigger
+		else if(m_trigger_mode == ExtTrigSingle)
+			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);// Start capture in external trigger STANDARD
+
+		DEB_TRACE() << "CreateEvent";
+		m_hThdEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+		DEB_TRACE() << "_beginthread";
+		_beginthread(grabThread, 0, this);// Start drawing thread	
+	}
+	Timestamp t1 = Timestamp::now();
+	double delta_time = t1 - t0;
+	DEB_TRACE() << "prepareAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
+	//@END
 }
 
 //-----------------------------------------------------
@@ -155,19 +173,25 @@ void Camera::prepareAcq()
 void Camera::startAcq()
 {
 	DEB_MEMBER_FUNCT();
+	AutoMutex lock(m_cond.mutex());
+	Timestamp t0 = Timestamp::now();
+	DEB_TRACE() << "startAcq ...";
 	m_acq_frame_nb = 0;
+	m_new_acquisition_done = false;
 	StdBufferCbMgr& buffer_mgr = m_bufferCtrlObj.getBuffer();
 	buffer_mgr.setStartTimestamp(Timestamp::now());
-
-	//@BEGIN : Ensure that Acquisition is Started before return ...
-	//...
+	//@BEGIN : tigger the acquisition
+	DEB_TRACE() << "DoSoftwareTrigger ";
+	TUCAM_Cap_DoSoftwareTrigger(m_opCam.hIdxTUCam);
 	//@END
 
 	//Start acquisition thread
-	AutoMutex aLock(m_cond.mutex());
 	m_wait_flag = false;
 	m_quit = false;
 	m_cond.broadcast();
+	Timestamp t1 = Timestamp::now();
+	double delta_time = t1 - t0;
+	DEB_TRACE() << "startAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
 }
 
 //-----------------------------------------------------
@@ -176,6 +200,7 @@ void Camera::startAcq()
 void Camera::stopAcq()
 {
 	DEB_MEMBER_FUNCT();
+	DEB_TRACE() << "stopAcq ...";
 	AutoMutex aLock(m_cond.mutex());
 	// Don't do anything if acquisition is idle.
 	if(m_thread_running == true)
@@ -185,10 +210,24 @@ void Camera::stopAcq()
 		DEB_TRACE() << "stop requested ";
 	}
 
-	//@BEGIN : Ensure that Acquisition is Stopped before return ...	
-	//...
-	//@END
-	m_status = Camera::Ready;
+	//@BEGIN : Ensure that Acquisition is Stopped before return ...			
+	m_waiting = false;
+	Timestamp t0 = Timestamp::now();
+	if(NULL != m_hThdEvent)
+	{
+		TUCAM_Buf_AbortWait(m_opCam.hIdxTUCam);// If you called TUCAM_Buf_WaitForFrames()
+		WaitForSingleObject(m_hThdEvent, INFINITE);
+		CloseHandle(m_hThdEvent);
+		m_hThdEvent = NULL;
+		TUCAM_Cap_Stop(m_opCam.hIdxTUCam);// Stop capture   
+		TUCAM_Buf_Release(m_opCam.hIdxTUCam);// Release alloc buffer after stop capture and quit drawing thread
+	}
+	m_status = Camera::Ready;	
+	Timestamp t1 = Timestamp::now();
+	double delta_time = t1 - t0;
+	DEB_TRACE() << "stopAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
+	//@END	
+	DEB_TRACE() << "Ensure that Acquisition is Stopped ";
 }
 
 //-----------------------------------------------------
@@ -206,23 +245,65 @@ void Camera::getStatus(Camera::Status& status)
 //-----------------------------------------------------
 //
 //-----------------------------------------------------
-void Camera::readFrame(void *bptr, int frame_nb)
+bool Camera::readFrame(void *bptr, int& frame_nb)
 {
 	DEB_MEMBER_FUNCT();
+	Timestamp t0 = Timestamp::now();
 	DEB_TRACE() << "Camera::readFrame() ";
 	//@BEGIN : Get frame from Driver/API & copy it into bptr already allocated 
-	//...
+	DEB_TRACE() << "Copy Buffer image into Lima Frame Ptr";
+	memcpy((unsigned short *) bptr, (unsigned short *) (m_frame.pBuffer + m_frame.usOffset), m_frame.uiImgSize);//we need a nb of BYTES .		
+	frame_nb = m_frame.uiIndex;
 	//@END	
 	m_status = Camera::Readout;
+	Timestamp t1 = Timestamp::now();
+	double delta_time = t1 - t0;
+	DEB_TRACE() << "readFrame : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
+	return false;
 }
 
 //-----------------------------------------------------
 //
 //-----------------------------------------------------
-int Camera::getNbHwAcquiredFrames()
+void Camera::grabThread(LPVOID lParam)
 {
-	DEB_MEMBER_FUNCT();
-	return m_acq_frame_nb;
+	std::cout << "Camera::grabThread() [BEGIN]" << std::endl;
+	Camera *pIn = (Camera *) lParam;
+//	while(pIn->m_status != Camera::Ready)
+	while(pIn->m_waiting)
+	{
+		if(TUCAMRET_SUCCESS == TUCAM_Buf_WaitForFrame(pIn->m_opCam.hIdxTUCam, &pIn->m_frame))
+		{
+			//The based information
+			//std::cout<<"pIn->m_frame.szSignature = "	<<pIn->m_frame.szSignature<<std::endl;		// [out]Copyright+Version: TU+1.0 ['T', 'U', '1', '\0']		
+			//std::cout<<"pIn->m_frame.usHeader = "		<<pIn->m_frame.usHeader<<std::endl;			// [out] The frame header size
+			//std::cout<<"pIn->m_frame.usOffset = "		<<pIn->m_frame.usOffset<<std::endl;			// [out] The frame data offset
+			std::cout << "pIn->m_frame.usWidth = " << pIn->m_frame.usWidth << std::endl;// [out] The frame width
+			std::cout << "pIn->m_frame.usHeight = " << pIn->m_frame.usHeight << std::endl;// [out] The frame height
+			//std::cout<<"pIn->m_frame.uiWidthStep = "	<<pIn->m_frame.uiWidthStep<<std::endl;		// [out] The frame width step
+			//std::cout<<"pIn->m_frame.ucDepth = "		<<pIn->m_frame.ucDepth<<std::endl;			// [out] The frame data depth 
+			//std::cout<<"pIn->m_frame.ucFormat = "		<<pIn->m_frame.ucFormat<<std::endl;			// [out] The frame data format                  
+			//std::cout<<"pIn->m_frame.ucChannels = "		<<pIn->m_frame.ucChannels<<std::endl;		// [out] The frame data channels
+			//std::cout<<"pIn->m_frame.ucElemBytes = "	<<pIn->m_frame.ucElemBytes<<std::endl;		// [out] The frame data bytes per element
+			//std::cout<<"pIn->m_frame.ucFormatGet = "	<<pIn->m_frame.ucFormatGet<<std::endl;		// [in]  Which frame data format do you want    see TUFRM_FORMATS
+			std::cout << "pIn->m_frame.uiIndex = " << pIn->m_frame.uiIndex << std::endl;// [in/out] The frame index number
+			std::cout << "pIn->m_frame.uiImgSize = " << pIn->m_frame.uiImgSize << std::endl;// [out] The frame size
+			std::cout << "pIn->m_frame.uiRsdSize = " << pIn->m_frame.uiRsdSize << std::endl;// [in]  The frame reserved size    (how many frames do you want)
+			//std::cout<<"pIn->m_frame.uiHstSize = "		<<pIn->m_frame.uiHstSize<<std::endl;		// [out] The frame histogram size	
+			pIn->m_new_acquisition_done = true;
+		}
+		else
+		{
+			std::cout << "Unable to get the frame from the camera !" << std::endl;
+		}
+	}
+	std::cout << "setEvent" << std::endl;
+	SetEvent(pIn->m_hThdEvent);
+
+	std::cout << "_endthread" << std::endl;
+	_endthread();
+
+	std::cout << "Camera::grabThread() [END]";
 }
 
 //-----------------------------------------------------
@@ -238,7 +319,7 @@ void Camera::AcqThread::threadFunction()
 	{
 		while(m_cam.m_wait_flag && !m_cam.m_quit)
 		{
-			DEB_TRACE() << "Wait for start acquisition";
+			DEB_TRACE() << "AcqThread : Wait for start acquisition";
 			m_cam.m_thread_running = false;
 			AutoMutex lock(m_cam.m_cond.mutex());
 			m_cam.m_cond.wait();
@@ -246,34 +327,61 @@ void Camera::AcqThread::threadFunction()
 
 		if(m_cam.m_quit)
 			return;
-		DEB_TRACE() << "AcqThread Running";
+		DEB_TRACE() << "AcqThread : Running";
 		m_cam.m_thread_running = true;
-		m_cam.m_status = Camera::Exposure;
 		//auto t1 = Clock::now();
 
 		bool continueFlag = true;
 		while(continueFlag && (!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames))
 		{
+			// Check first if acq. has been stopped
+			DEB_TRACE() << "AcqThread : Check first if acq. has been stopped ";
+			if(m_cam.m_wait_flag)
+			{
+				DEB_TRACE() << "AcqThread: has been stopped from user ";
+				continueFlag = false;
+				continue;
+			}
+			
+			//Generate software triger for each frame, except for the first image
+			if(m_cam.m_acq_frame_nb != 0)
+			{
+				DEB_TRACE() << "AcqThread : Wait latency time : " << m_cam.m_lat_time * 1000000 << " (us) ";
+				usleep((DWORD)(m_cam.m_lat_time * 1000000));
+				DEB_TRACE() << "AcqThread : DoSoftwareTrigger ";
+				TUCAM_Cap_DoSoftwareTrigger(m_cam.m_opCam.hIdxTUCam);
+			}
 
-			//Prepare Lima Frame Ptr 
-			DEB_TRACE() << "Prepare  Lima Frame Ptr";
-			void* bptr = buffer_mgr.getFrameBufferPtr(m_cam.m_acq_frame_nb);
+			if(m_cam.m_new_acquisition_done)
+			{
+				//Prepare Lima Frame Ptr 
+				DEB_TRACE() << "AcqThread : Prepare  Lima Frame Ptr";
+				void* bptr = buffer_mgr.getFrameBufferPtr(m_cam.m_acq_frame_nb);
 
-			//Read Frame From API/Driver/Etc ... & Copy it into Lima Frame Ptr
-			DEB_TRACE() << "Read Frame From API/Driver/Etc ... & Copy it into Lima Frame Ptr";
-			m_cam.readFrame(bptr, m_cam.m_acq_frame_nb);
-			//Push the image buffer through Lima 
-			DEB_TRACE() << "Declare a Lima new Frame Ready (" << m_cam.m_acq_frame_nb << ")";
-			HwFrameInfoType frame_info;
-			frame_info.acq_frame_nb = m_cam.m_acq_frame_nb;
-			buffer_mgr.newFrameReady(frame_info);
-			m_cam.m_acq_frame_nb++;
+				//Read Frame From API/Driver/Etc ... & Copy it into Lima Frame Ptr
+				DEB_TRACE() << "AcqThread : Read Frame From API/Driver/Etc ....";
+				int frame_nb = 0;
+				m_cam.readFrame(bptr, frame_nb);
+				//Push the image buffer through Lima 
+				DEB_TRACE() << "AcqThread : Declare a Lima new Frame Ready (" << m_cam.m_acq_frame_nb << ")";
+				HwFrameInfoType frame_info;
+				frame_info.acq_frame_nb = m_cam.m_acq_frame_nb;
+				continueFlag = buffer_mgr.newFrameReady(frame_info);
+				m_cam.m_acq_frame_nb++;
+				m_cam.m_new_acquisition_done = false;
+			}
 		}
-		//auto t2 = Clock::now();
+		//auto t2 = Clock::now();		
 		//DEB_TRACE() << "Delta t2-t1: " << std::chrono::duration_cast < std::chrono::nanoseconds > (t2 - t1).count() << " nanoseconds";
-		DEB_TRACE() << " AcqThread::threadfunction() Setting thread running flag to false";
+		//stopAcq only if this is not already done
+		DEB_TRACE() << "AcqThread : stopAcq only if this is not already done ";
+		if(!m_cam.m_wait_flag)
+		{
+			DEB_TRACE() << " AcqThread: StopAcq";
+			m_cam.stopAcq();
+		}
+		DEB_TRACE() << " AcqThread: Setting thread running flag to false";
 		AutoMutex lock(m_cam.m_cond.mutex());
-		//		aLock.lock();
 		m_cam.m_thread_running = false;
 		m_cam.m_wait_flag = true;
 		m_cam.m_status = Camera::Ready;
@@ -418,13 +526,13 @@ bool Camera::checkTrigMode(TrigMode mode)
 	switch(mode)
 	{
 		case IntTrig:
-		case IntTrigMult:
 		case ExtTrigSingle:
-		case ExtTrigMult:
-		case ExtGate:
 			valid_mode = true;
 			break;
 		case ExtTrigReadout:
+		case ExtGate:
+		case ExtTrigMult:
+		case IntTrigMult:
 		default:
 			valid_mode = false;
 			break;
@@ -440,17 +548,30 @@ void Camera::setTrigMode(TrigMode mode)
 	DEB_MEMBER_FUNCT();
 	DEB_TRACE() << "Camera::setTrigMode() " << DEB_VAR1(mode);
 	DEB_PARAM() << DEB_VAR1(mode);
+	TUCAM_TRIGGER_ATTR tgrAttr;
+	tgrAttr.nTgrMode = 0;
+	tgrAttr.nFrames = 1;
+	tgrAttr.nDelayTm = 0;
+	tgrAttr.nExpMode = TUCTE_EXPTM;
+	tgrAttr.nEdgeMode = TUCTD_RISING;
+
+
 	switch(mode)
 	{
 		case IntTrig:
-		case IntTrigMult:
+			tgrAttr.nTgrMode = TUCCM_TRIGGER_SOFTWARE;
+			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);
+			DEB_TRACE() << "TUCAM_Cap_SetTrigger : TUCCM_TRIGGER_SOFTWARE";
 			break;
 		case ExtTrigSingle:
+			tgrAttr.nTgrMode = TUCCM_TRIGGER_STANDARD;
+			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);
+			DEB_TRACE() << "TUCAM_Cap_SetTrigger : TUCCM_TRIGGER_STANDARD";
 			break;
 		case ExtTrigMult:
-			break;
 		case ExtGate:
-			break;
+		case IntTrigMult:
+		case ExtTrigReadout:
 		default:
 			THROW_HW_ERROR(NotSupported) << DEB_VAR1(mode);
 	}
@@ -550,9 +671,13 @@ void Camera::setNbFrames(int nb_frames)
 {
 	DEB_MEMBER_FUNCT();
 	DEB_TRACE() << "Camera::setNbFrames() " << DEB_VAR1(nb_frames);
-	if(m_nb_frames < 0)
+	if(nb_frames < 0)
 	{
 		THROW_HW_ERROR(Error) << "Number of frames to acquire has not been set";
+	}
+	if(nb_frames > 1)
+	{
+		//THROW_HW_ERROR(Error) << "Unable to acquire more than 1 frame ! ";	//T@D@ allowed only for test 
 	}
 	m_nb_frames = nb_frames;
 }
@@ -566,6 +691,15 @@ void Camera::getNbFrames(int& nb_frames)
 	DEB_TRACE() << "Camera::getNbFrames";
 	DEB_RETURN() << DEB_VAR1(m_nb_frames);
 	nb_frames = m_nb_frames;
+}
+
+//-----------------------------------------------------
+//
+//-----------------------------------------------------
+int Camera::getNbHwAcquiredFrames()
+{
+	DEB_MEMBER_FUNCT();
+	return m_acq_frame_nb;
 }
 
 //-----------------------------------------------------
@@ -670,7 +804,23 @@ void Camera::setRoi(const Roi& set_roi)
 	//@BEGIN : set Roi from the Driver/API	
 	if(!set_roi.isActive())
 	{
-		DEB_TRACE() << "Roi is not Enabled";
+		DEB_TRACE() << "Roi is not Enabled : so set full frame";
+		/*
+		//set Roi to Driver/API
+		Size size;
+		getDetectorImageSize(size);
+		TUCAM_ROI_ATTR roiAttr;
+		roiAttr.bEnable = TRUE;
+		roiAttr.nHOffset = 0;
+		roiAttr.nVOffset = 0;
+		roiAttr.nWidth = size.getWidth();
+		roiAttr.nHeight = size.getHeight();
+
+		if(TUCAMRET_SUCCESS != TUCAM_Cap_SetROI(m_opCam.hIdxTUCam, roiAttr))
+		{
+			THROW_HW_ERROR(Error) << "Unable to SetRoi to the camera !";
+		}		
+		 */
 	}
 	else
 	{
@@ -711,28 +861,34 @@ bool Camera::isAcqRunning() const
 //-----------------------------------------------------  
 void Camera::setTemperatureTarget(double temp)
 {
-	DEB_MEMBER_FUNCT();	
+	DEB_MEMBER_FUNCT();
 	TUCAM_PROP_ATTR attrProp;
-	attrProp.nIdxChn = 0;    // Current channel (camera monochrome = 0) . VERY IMPORTANT, doesn't work otherwise !!!!!
+	attrProp.nIdxChn = 0;// Current channel (camera monochrome = 0) . VERY IMPORTANT, doesn't work otherwise !!!!!
 	attrProp.idProp = TUIDP_TEMPERATURE;
 	if(TUCAMRET_SUCCESS != TUCAM_Prop_GetAttr(m_opCam.hIdxTUCam, &attrProp))
-	{				
+	{
 		THROW_HW_ERROR(Error) << "Unable to Read TUIDP_TEMPERATURE range from the camera !";
 	}
-    DEB_TRACE() << "Temperature range [" << (int) attrProp.dbValMin << " , " << (int) attrProp.dbValMax << "]";
-	
-	int temp_middle = (int)attrProp.dbValMax/2;
-	if(((int)temp + temp_middle)<((int)attrProp.dbValMin) || ((int)temp + temp_middle)>((int)attrProp.dbValMax))
+	DEB_TRACE() << "Temperature range [" << (int) attrProp.dbValMin << " , " << (int) attrProp.dbValMax << "]";
+
+	int temp_middle = (int) attrProp.dbValMax / 2;
+	if(((int) temp + temp_middle)<((int) attrProp.dbValMin) || ((int) temp + temp_middle)>((int) attrProp.dbValMax))
 	{
-		THROW_HW_ERROR(Error) << "Unable to set the Temperature Target!\n it is out of range ["<<(int) attrProp.dbValMin-temp_middle<<","<<(int) attrProp.dbValMax-temp_middle<<"]";
+		THROW_HW_ERROR(Error) << "Unable to set the Temperature Target !\n"
+		 << "It is out of range : "
+		 << "["
+		 << (int) attrProp.dbValMin - temp_middle
+		 << ","
+		 << (int) attrProp.dbValMax - temp_middle
+		 << "]";
 	}
-	
-	int nVal = (int)temp + temp_middle;//temperatureTarget is a delta according to the middle temperature !!
+
+	int nVal = (int) temp + temp_middle;//temperatureTarget is a delta according to the middle temperature !!
 	if(TUCAMRET_SUCCESS != TUCAM_Prop_SetValue(m_opCam.hIdxTUCam, TUIDP_TEMPERATURE, nVal))
 	{
 		THROW_HW_ERROR(Error) << "Unable to Write TUIDP_TEMPERATURE to the camera !";
-	}	
-	m_temperature_target = (double)temp;
+	}
+	m_temperature_target = (double) temp;
 }
 
 //-----------------------------------------------------

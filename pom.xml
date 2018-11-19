@@ -57,7 +57,8 @@
                         <sourceDirectory>${project.basedir}</sourceDirectory>                                               
                         <includePaths>                          
                             <includePath>include</includePath>
-                            <includePath>x:\DeviceSources\Lima\camera\dhyana\sdk\msvc\include</includePath>
+                            <!--<includePath>x:\DeviceSources\Lima\camera\dhyana\sdk\msvc\include</includePath>-->
+                            <includePath>x:\DeviceSources\TUCSEN\1009\TUCam_SDK_C++_20180929_v1.0.0.9\sdk\inc</includePath>
                         </includePaths>      
                         <!-- define less verbose mode for gcc-->
                         <options>
@@ -78,7 +79,9 @@
                                 <!-- tucam -->
                                 <name>TUCam</name>
                                 <type>shared</type>
-                                <directory>x:\DeviceSources\Lima\camera\dhyana\sdk\msvc\lib\x86</directory>
+                                <!--<directory>x:\DeviceSources\Lima\camera\dhyana\sdk\msvc\lib\x86</directory>-->
+                                <directory>x:\DeviceSources\TUCSEN\1009\TUCam_SDK_C++_20180929_v1.0.0.9\sdk\lib\x86</directory>
+                                
                             </lib>
                         </libs>
                     </linker>	                    

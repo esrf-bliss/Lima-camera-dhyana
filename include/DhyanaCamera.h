@@ -30,8 +30,8 @@
 
 #include <ostream>
 #include <map>
+#include <process.h>
 #include "DhyanaCompatibility.h"
-#include "lima/HwMaxImageSizeCallback.h"
 #include "lima/HwBufferMgr.h"
 #include "lima/HwInterface.h"
 #include "lima/Debug.h"
@@ -57,7 +57,7 @@ class BufferCtrlObj;
  * \class Camera
  * \brief object controlling the Dhyana camera
  *******************************************************************/
-class LIBDHYANA_API Camera : public HwMaxImageSizeCallbackGen
+class LIBDHYANA_API Camera
 {
     DEB_CLASS_NAMESPC(DebModCamera, "Camera", "Dhyana");
 
@@ -69,7 +69,7 @@ public:
     } ;
 
     Camera();
-    ~Camera();
+    virtual ~Camera();
 
     void init();
     void reset();
@@ -118,6 +118,10 @@ public:
     void setRoi(const Roi& set_roi);
     void getRoi(Roi& hw_roi);
 
+    ///////////////////////////////
+    // -- dhyana specific functions
+    ///////////////////////////////
+
     void setTemperatureTarget(double temp);
     void getTemperatureTarget(double& temp);
     void getTemperature(double& temp);
@@ -128,15 +132,12 @@ public:
     void getTucamVersion(std::string& version);
     void getFirmwareVersion(std::string& version);    
     bool isAcqRunning() const;
-
-    ///////////////////////////////
-    // -- dhyana specific functions
-    ///////////////////////////////
-
+    
 private:
-
-    //get frame from API/Driver/etc ...
-    void readFrame(void *bptr, int frame_nb);
+    //read/copy frame
+    bool readFrame(void *bptr, int& frame_nb);
+    //get frame from API/Driver/etc ...    
+    static void __cdecl grabThread(LPVOID lParam);
 
     //////////////////////////////
     // -- dhyana specific members
@@ -160,16 +161,36 @@ private:
     Camera::Status      m_status;
     Bin                 m_bin;
     double              m_temperature_target;
-
+    bool                m_new_acquisition_done;
+    bool                m_waiting;
     // Buffer control object
     SoftBufferCtrlObj   m_bufferCtrlObj;
     
-    //TUCAM stuff
-    TUCAM_INIT          m_itApi;// Initializing SDK environment parameters
-    TUCAM_OPEN          m_opCam;// Open camera parameters
+    //TUCAM stuff, use TUCAM notations !
+    TUCAM_INIT          m_itApi;// TUCAM handle Api
+    TUCAM_OPEN          m_opCam;// TUCAM handle camera
+    TUCAM_FRAME         m_frame;// TUCAM frame structure
+    HANDLE              m_hThdEvent;// TUCAM handle event   
 
 } ;
 
+/*******************************************************************
+ * \class AcqThread
+ * \brief Thread of acquisition
+ *******************************************************************/
+class Camera::AcqThread:public Thread
+{
+	DEB_CLASS_NAMESPC(DebModCamera, "Camera", "AcqThread");
+public:
+	AcqThread(Camera &aCam);
+	virtual ~AcqThread();
+
+protected:
+	virtual void threadFunction();
+
+private:
+	Camera& m_cam;
+};
 
 } // namespace Dhyana
 } // namespace lima
