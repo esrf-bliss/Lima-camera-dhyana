@@ -136,9 +136,7 @@ public:
 private:
     //read/copy frame
     bool readFrame(void *bptr, int& frame_nb);
-    //get frame from API/Driver/etc ...    
-    static void __cdecl grabThread(LPVOID lParam);
-
+	void setStatus(Camera::Status status,bool force);
     //////////////////////////////
     // -- dhyana specific members
     //////////////////////////////
@@ -161,8 +159,6 @@ private:
     Camera::Status      m_status;
     Bin                 m_bin;
     double              m_temperature_target;
-    bool                m_new_acquisition_done;
-    bool                m_waiting;
     // Buffer control object
     SoftBufferCtrlObj   m_bufferCtrlObj;
     
