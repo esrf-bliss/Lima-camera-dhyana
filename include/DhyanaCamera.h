@@ -38,7 +38,7 @@
 #include "TUCamApi.h"
 #include "TUDefine.h"
 
-        
+
 using namespace std;
 
 namespace lima
@@ -128,15 +128,26 @@ public:
     void setFanSpeed(unsigned speed);
     void getFanSpeed(unsigned& speed);
     void setGlobalGain(unsigned gain);
-    void getGlobalGain(unsigned& gain);    
+    void getGlobalGain(unsigned& gain);
     void getTucamVersion(std::string& version);
-    void getFirmwareVersion(std::string& version);    
+    void getFirmwareVersion(std::string& version);
     bool isAcqRunning() const;
-    
+
 private:
     //read/copy frame
     bool readFrame(void *bptr, int& frame_nb);
-	void setStatus(Camera::Status status,bool force);
+    void setStatus(Camera::Status status, bool force);
+    inline bool IS_POWER_OF_2(long x)
+    {
+        if( ((x ^ (x - 1)) == x + (x - 1)) && (x != 0) )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
     //////////////////////////////
     // -- dhyana specific members
     //////////////////////////////
@@ -154,19 +165,18 @@ private:
     bool                m_quit;
     int                 m_acq_frame_nb; // nos of frames acquired
     mutable             Cond m_cond;
-    TrigMode            m_trig_mode;
     long                m_depth;
     Camera::Status      m_status;
     Bin                 m_bin;
     double              m_temperature_target;
     // Buffer control object
     SoftBufferCtrlObj   m_bufferCtrlObj;
-    
+
     //TUCAM stuff, use TUCAM notations !
-    TUCAM_INIT          m_itApi;// TUCAM handle Api
-    TUCAM_OPEN          m_opCam;// TUCAM handle camera
-    TUCAM_FRAME         m_frame;// TUCAM frame structure
-    HANDLE              m_hThdEvent;// TUCAM handle event   
+    TUCAM_INIT          m_itApi; // TUCAM handle Api
+    TUCAM_OPEN          m_opCam; // TUCAM handle camera
+    TUCAM_FRAME         m_frame; // TUCAM frame structure
+    HANDLE              m_hThdEvent; // TUCAM handle event   
 
 } ;
 
@@ -174,19 +184,19 @@ private:
  * \class AcqThread
  * \brief Thread of acquisition
  *******************************************************************/
-class Camera::AcqThread:public Thread
+class Camera::AcqThread : public Thread
 {
-	DEB_CLASS_NAMESPC(DebModCamera, "Camera", "AcqThread");
+    DEB_CLASS_NAMESPC(DebModCamera, "Camera", "AcqThread");
 public:
-	AcqThread(Camera &aCam);
-	virtual ~AcqThread();
+    AcqThread(Camera &aCam);
+    virtual ~AcqThread();
 
 protected:
-	virtual void threadFunction();
+    virtual void threadFunction();
 
 private:
-	Camera& m_cam;
-};
+    Camera& m_cam;
+} ;
 
 } // namespace Dhyana
 } // namespace lima
