@@ -117,9 +117,8 @@ void Camera::init()
 void Camera::reset()
 {
 	DEB_MEMBER_FUNCT();
-	stopAcq();
 	//@BEGIN : other stuff on Driver/API
-	//...
+	stopAcq();
 	//@END
 }
 
@@ -132,7 +131,6 @@ void Camera::prepareAcq()
 	AutoMutex lock(m_cond.mutex());
 	//@BEGIN : Ensure that Acquisition is Stopped . Sometimes API TUcam doesn't close correctly !!
 	Timestamp t0 = Timestamp::now();
-	DEB_TRACE() << "Ensure that Acquisition is Stopped ";
 
 	//@BEGIN : Ensure that Acquisition is Started before return ...
 	DEB_TRACE() << "Ensure that Acquisition is Started  ";
@@ -157,6 +155,7 @@ void Camera::prepareAcq()
 		DEB_TRACE() << "CreateEvent";
 		m_hThdEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	}
+	
 	Timestamp t1 = Timestamp::now();
 	double delta_time = t1 - t0;
 	DEB_TRACE() << "prepareAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
@@ -227,11 +226,12 @@ void Camera::stopAcq()
 
 	//now detector is ready
 	setStatus(Camera::Ready, false);
-
+	//@END	
+	
 	Timestamp t1 = Timestamp::now();
 	double delta_time = t1 - t0;
 	DEB_TRACE() << "stopAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
-	//@END	
+	
 	DEB_TRACE() << "Ensure that Acquisition is Stopped ";
 }
 
@@ -304,7 +304,7 @@ void Camera::AcqThread::threadFunction()
 
 		DEB_TRACE() << "AcqThread : Running ...";
 		m_cam.m_thread_running = true;
-
+		//@BEGIN 
 		bool continueFlag = true;
 		while(continueFlag && (!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames))
 		{
@@ -383,6 +383,7 @@ void Camera::AcqThread::threadFunction()
 		//
 		DEB_TRACE() << "AcqThread : SetEvent";
 		SetEvent(m_cam.m_hThdEvent);
+		//@END
 		
 		//stopAcq only if this is not already done		
 		DEB_TRACE() << "AcqThread : stopAcq only if this is not already done ";
@@ -533,7 +534,7 @@ bool Camera::checkTrigMode(TrigMode mode)
 {
 	DEB_MEMBER_FUNCT();
 	bool valid_mode;
-
+	//@BEGIN
 	switch(mode)
 	{
 		case IntTrig:
@@ -548,6 +549,7 @@ bool Camera::checkTrigMode(TrigMode mode)
 			valid_mode = false;
 			break;
 	}
+	//@END
 	return valid_mode;
 }
 
@@ -559,13 +561,13 @@ void Camera::setTrigMode(TrigMode mode)
 	DEB_MEMBER_FUNCT();
 	DEB_TRACE() << "Camera::setTrigMode() " << DEB_VAR1(mode);
 	DEB_PARAM() << DEB_VAR1(mode);
+	//@BEGIN
 	TUCAM_TRIGGER_ATTR tgrAttr;
 	tgrAttr.nTgrMode = -1;//NOT DEFINED (see below)
 	tgrAttr.nFrames = 1;
 	tgrAttr.nDelayTm = 0;
 	tgrAttr.nExpMode = -1;//NOT DEFINED (see below)
 	tgrAttr.nEdgeMode = TUCTD_RISING;
-
 
 	switch(mode)
 	{
@@ -594,6 +596,7 @@ void Camera::setTrigMode(TrigMode mode)
 			THROW_HW_ERROR(NotSupported) << DEB_VAR1(mode);
 	}
 	m_trigger_mode = mode;
+	//@END
 
 }
 
@@ -613,12 +616,14 @@ void Camera::getTrigMode(TrigMode& mode)
 void Camera::getExpTime(double& exp_time)
 {
 	DEB_MEMBER_FUNCT();
+	//@BEGIN
 	double dbVal;
 	if(TUCAMRET_SUCCESS != TUCAM_Prop_GetValue(m_opCam.hIdxTUCam, TUIDP_EXPOSURETM, &dbVal))
 	{
 		THROW_HW_ERROR(Error) << "Unable to Read TUIDP_EXPOSURETM from the camera !";
 	}
 	m_exp_time = dbVal / 1000;//TUCAM use (ms), but lima use (second) as unit 
+	//@END
 	exp_time = m_exp_time;
 	DEB_RETURN() << DEB_VAR1(exp_time);
 }
@@ -630,10 +635,12 @@ void Camera::setExpTime(double exp_time)
 {
 	DEB_MEMBER_FUNCT();
 	DEB_TRACE() << "Camera::setExpTime() " << DEB_VAR1(exp_time);
+	//@BEGIN
 	if(TUCAMRET_SUCCESS != TUCAM_Prop_SetValue(m_opCam.hIdxTUCam, TUIDP_EXPOSURETM, exp_time * 1000))//TUCAM use (ms), but lima use (second) as unit 
 	{
 		THROW_HW_ERROR(Error) << "Unable to Write TUIDP_EXPOSURETM to the camera !";
 	}
+	//@END
 	m_exp_time = exp_time;
 }
 
@@ -654,6 +661,8 @@ void Camera::setLatTime(double lat_time)
 void Camera::getLatTime(double& lat_time)
 {
 	DEB_MEMBER_FUNCT();
+	//@BEGIN
+	//@END
 	m_lat_time = lat_time;
 	DEB_RETURN() << DEB_VAR1(lat_time);
 }
@@ -664,8 +673,10 @@ void Camera::getLatTime(double& lat_time)
 void Camera::getExposureTimeRange(double& min_expo, double& max_expo) const
 {
 	DEB_MEMBER_FUNCT();
+	//@BEGIN
 	min_expo = 0.;
 	max_expo = 10;//10s
+	//@END
 	DEB_RETURN() << DEB_VAR2(min_expo, max_expo);
 }
 
@@ -675,10 +686,12 @@ void Camera::getExposureTimeRange(double& min_expo, double& max_expo) const
 void Camera::getLatTimeRange(double& min_lat, double& max_lat) const
 {
 	DEB_MEMBER_FUNCT();
+	//@BEGIN
 	// --- no info on min latency
 	min_lat = 0.;
 	// --- do not know how to get the max_lat, fix it as the max exposure time
 	max_lat = 10;//10s
+	//@END
 	DEB_RETURN() << DEB_VAR2(min_lat, max_lat);
 }
 
@@ -689,6 +702,7 @@ void Camera::setNbFrames(int nb_frames)
 {
 	DEB_MEMBER_FUNCT();
 	DEB_TRACE() << "Camera::setNbFrames() " << DEB_VAR1(nb_frames);
+	//@BEGIN
 	if(nb_frames < 0)
 	{
 		THROW_HW_ERROR(Error) << "Number of frames to acquire has not been set";
@@ -697,6 +711,7 @@ void Camera::setNbFrames(int nb_frames)
 	{
 		//THROW_HW_ERROR(Error) << "Unable to acquire more than 1 frame ! ";	//T@D@ allowed only for test 
 	}
+	//@END
 	m_nb_frames = nb_frames;
 }
 
@@ -708,6 +723,8 @@ void Camera::getNbFrames(int& nb_frames)
 	DEB_MEMBER_FUNCT();
 	DEB_TRACE() << "Camera::getNbFrames";
 	DEB_RETURN() << DEB_VAR1(m_nb_frames);
+	//@BEGIN
+	//@END
 	nb_frames = m_nb_frames;
 }
 
