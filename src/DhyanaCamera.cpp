@@ -51,10 +51,14 @@ m_temperature_target(0),
 m_hThdEvent(NULL)
 {
 
-	DEB_CONSTRUCTOR();
-	init();
+	DEB_CONSTRUCTOR();	
+	//Init TUCAM	
+	init();		
+	//create the acquisition thread
+	DEB_TRACE() << "Create the acquisition thread ...";
 	m_acq_thread = new AcqThread(*this);
 	m_acq_thread->start();
+	
 }
 
 //-----------------------------------------------------
@@ -67,7 +71,7 @@ Camera::~Camera()
 	TUCAM_Dev_Close(m_opCam.hIdxTUCam);// Close camera
 	DEB_TRACE() << "Uninitialize TUCAM API ...";
 	TUCAM_Api_Uninit();// Uninitialize SDK API environment
-
+	DEB_TRACE() << "Delete the acquisition thread ...";
 	delete m_acq_thread;
 }
 
@@ -108,7 +112,6 @@ void Camera::init()
 	{
 		THROW_HW_ERROR(Error) << "Unable to open the camera !";
 	}
-
 }
 
 //-----------------------------------------------------
@@ -117,8 +120,9 @@ void Camera::init()
 void Camera::reset()
 {
 	DEB_MEMBER_FUNCT();
+	stopAcq();	
 	//@BEGIN : other stuff on Driver/API
-	stopAcq();
+	//...
 	//@END
 }
 
@@ -129,7 +133,6 @@ void Camera::prepareAcq()
 {
 	DEB_MEMBER_FUNCT();
 	AutoMutex lock(m_cond.mutex());
-	//@BEGIN : Ensure that Acquisition is Stopped . Sometimes API TUcam doesn't close correctly !!
 	Timestamp t0 = Timestamp::now();
 
 	//@BEGIN : Ensure that Acquisition is Started before return ...
@@ -169,13 +172,24 @@ void Camera::startAcq()
 {
 	DEB_MEMBER_FUNCT();
 	AutoMutex lock(m_cond.mutex());
+	
 	Timestamp t0 = Timestamp::now();
 
 	DEB_TRACE() << "startAcq ...";
 	m_acq_frame_nb = 0;
 	StdBufferCbMgr& buffer_mgr = m_bufferCtrlObj.getBuffer();
 	buffer_mgr.setStartTimestamp(Timestamp::now());
-
+	
+	DEB_TRACE() << "Ensure that Acquisition is Started  & wait thread to be started";
+	setStatus(Camera::Exposure, false);		
+	//Start acquisition thread & wait 
+	{
+		m_wait_flag = false;
+		m_quit = false;
+		m_cond.broadcast();
+		m_cond.wait();
+	}
+	
 	//@BEGIN : tigger the acquisition
 	if(m_trigger_mode == IntTrig)	
 	{
@@ -183,14 +197,7 @@ void Camera::startAcq()
 		TUCAM_Cap_DoSoftwareTrigger(m_opCam.hIdxTUCam);
 	}
 	//@END
-
-	//Start acquisition thread
-	{
-		m_wait_flag = false;
-		m_quit = false;
-		m_cond.broadcast();
-	}
-
+	
 	Timestamp t1 = Timestamp::now();
 	double delta_time = t1 - t0;
 	DEB_TRACE() << "startAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
@@ -221,7 +228,7 @@ void Camera::stopAcq()
 		CloseHandle(m_hThdEvent);
 		m_hThdEvent = NULL;
 		TUCAM_Cap_Stop(m_opCam.hIdxTUCam);// Stop capture   
-		TUCAM_Buf_Release(m_opCam.hIdxTUCam);// Release alloc buffer after stop capture and quit drawing thread
+		TUCAM_Buf_Release(m_opCam.hIdxTUCam);// Release alloc buffer after stop capture
 	}
 
 	//now detector is ready
@@ -253,7 +260,7 @@ void Camera::setStatus(Camera::Status status, bool force)
 void Camera::getStatus(Camera::Status& status)
 {
 	DEB_MEMBER_FUNCT();
-
+	AutoMutex aLock(m_cond.mutex());
 	status = m_status;
 
 	DEB_RETURN() << DEB_VAR1(status);
@@ -285,7 +292,7 @@ bool Camera::readFrame(void *bptr, int& frame_nb)
 void Camera::AcqThread::threadFunction()
 {
 	DEB_MEMBER_FUNCT();
-	//AutoMutex aLock(m_cam.m_cond.mutex());
+	AutoMutex aLock(m_cam.m_cond.mutex());
 	StdBufferCbMgr& buffer_mgr = m_cam.m_bufferCtrlObj.getBuffer();
 
 	while(!m_cam.m_quit)
@@ -294,7 +301,7 @@ void Camera::AcqThread::threadFunction()
 		{
 			DEB_TRACE() << "AcqThread : Wait for start acquisition ...";
 			m_cam.m_thread_running = false;
-			AutoMutex lock(m_cam.m_cond.mutex());
+			m_cam.m_cond.broadcast();
 			m_cam.m_cond.wait();
 		}
 
@@ -302,8 +309,11 @@ void Camera::AcqThread::threadFunction()
 		if(m_cam.m_quit)
 			return;
 
-		DEB_TRACE() << "AcqThread : Running ...";
+		DEB_TRACE() << "AcqThread Running";
 		m_cam.m_thread_running = true;
+		m_cam.m_cond.broadcast();
+		aLock.unlock();		
+
 		//@BEGIN 
 		bool continueFlag = true;
 		while(continueFlag && (!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames))
@@ -352,13 +362,17 @@ void Camera::AcqThread::threadFunction()
 				//Copy Frame into Lima Frame Ptr
 				int frame_nb = 0;
 				m_cam.readFrame(bptr, frame_nb);
+		
 				//Push the image buffer through Lima 
+				Timestamp t0 = Timestamp::now();
 				DEB_TRACE() << "AcqThread : Declare a Lima new Frame Ready (" << m_cam.m_acq_frame_nb << ")";
 				HwFrameInfoType frame_info;
 				frame_info.acq_frame_nb = m_cam.m_acq_frame_nb;
 				continueFlag = buffer_mgr.newFrameReady(frame_info);
 				m_cam.m_acq_frame_nb++;
-
+				Timestamp t1 = Timestamp::now();
+				double delta_time = t1 - t0;
+				DEB_TRACE() << "newFrameReady : elapsed time = " << (int) (delta_time * 1000) << " (ms)";				
 				//wait latency after each frame , except for the last image
 				if(!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames)
 				{
@@ -393,8 +407,10 @@ void Camera::AcqThread::threadFunction()
 			m_cam.stopAcq();
 		}
 
-		DEB_TRACE() << " AcqThread: thread is no more running (m_thread_running = false, m_wait_flag = true)";
-		AutoMutex lock(m_cam.m_cond.mutex());
+				//now detector is ready
+		m_cam.setStatus(Camera::Ready, false);
+		DEB_TRACE() << " AcqThread: thread is no more running (m_thread_running = false, m_wait_flag = true)";		
+		aLock.lock();
 		m_cam.m_thread_running = false;
 		m_cam.m_wait_flag = true;
 	}
@@ -419,6 +435,7 @@ m_cam(cam)
 Camera::AcqThread::~AcqThread()
 {
 	AutoMutex aLock(m_cam.m_cond.mutex());
+	m_cam.m_wait_flag = true;
 	m_cam.m_quit = true;
 	m_cam.m_cond.broadcast();
 	aLock.unlock();
