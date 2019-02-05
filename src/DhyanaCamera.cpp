@@ -150,7 +150,7 @@ void Camera::prepareAcq()
 		DEB_TRACE() << "TUCAM_Cap_Start";
 		if(m_trigger_mode == IntTrig)
 			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE);// Start capture in software trigger
-		else if(m_trigger_mode == ExtTrigSingle)
+		else if(m_trigger_mode == ExtTrigMult)
 			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);// Start capture in external trigger STANDARD (EXPOSURE SOFT)
 		else if(m_trigger_mode == ExtGate)
 			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);// Start capture in external trigger STANDARD (EXPOSURE WIDTH)
@@ -275,14 +275,14 @@ bool Camera::readFrame(void *bptr, int& frame_nb)
 	Timestamp t0 = Timestamp::now();
 
 	//@BEGIN : Get frame from Driver/API & copy it into bptr already allocated 
-	DEB_TRACE() << "Copy Buffer image into Lima Frame Ptr";
-	memcpy((unsigned char *) bptr, (unsigned char *) (m_frame.pBuffer + m_frame.usOffset), m_frame.uiImgSize);//we need a nb of BYTES .		
+//	DEB_TRACE() << "Copy Buffer image into Lima Frame Ptr";
+	memcpy((unsigned short *) bptr, (unsigned short *) (m_frame.pBuffer + m_frame.usOffset), m_frame.uiImgSize);//we need a nb of BYTES .		
 	frame_nb = m_frame.uiIndex;
 	//@END	
 
-	Timestamp t1 = Timestamp::now();
-	double delta_time = t1 - t0;
-	DEB_TRACE() << "readFrame : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
+//	Timestamp t1 = Timestamp::now();
+//	double delta_time = t1 - t0;
+//	DEB_TRACE() << "readFrame : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
 	return false;
 }
 
@@ -319,7 +319,7 @@ void Camera::AcqThread::threadFunction()
 		while(continueFlag && (!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames))
 		{
 			// Check first if acq. has been stopped
-			DEB_TRACE() << "AcqThread : Check first if acq. has been stopped ";
+			////DEB_TRACE() << "AcqThread : Check first if acq. has been stopped ";
 			if(m_cam.m_wait_flag)
 			{
 				DEB_TRACE() << "AcqThread: has been stopped from user ";
@@ -332,8 +332,13 @@ void Camera::AcqThread::threadFunction()
 
 			//wait frame from TUCAM API ...
 			DEB_TRACE() << "AcqThread: Wait frame from TUCAM API ...";
+			Timestamp t0_capture = Timestamp::now();
 			if(TUCAMRET_SUCCESS == TUCAM_Buf_WaitForFrame(m_cam.m_opCam.hIdxTUCam, &m_cam.m_frame))
 			{
+				Timestamp t1_capture = Timestamp::now();
+				double delta_time_capture = t1_capture - t0_capture;
+				DEB_TRACE() << "AcqThread : capture elapsed time = " << (int) (delta_time_capture * 1000) << " (ms)";		
+				
 				//The based information
 				//DEB_TRACE() << "m_cam.m_frame.szSignature = "	<< m_cam.m_frame.szSignature<<std::endl;		// [out]Copyright+Version: TU+1.0 ['T', 'U', '1', '\0']		
 				//DEB_TRACE() << "m_cam.m_frame.usHeader = "	<< m_cam.m_frame.usHeader<<std::endl;			// [out] The frame header size
@@ -356,7 +361,7 @@ void Camera::AcqThread::threadFunction()
 				m_cam.setStatus(Camera::Readout, false);
 
 				//Prepare Lima Frame Ptr 
-				DEB_TRACE() << "AcqThread : Prepare  Lima Frame Ptr";
+				////DEB_TRACE() << "AcqThread : Prepare  Lima Frame Ptr";
 				void* bptr = buffer_mgr.getFrameBufferPtr(m_cam.m_acq_frame_nb);
 
 				//Copy Frame into Lima Frame Ptr
@@ -372,7 +377,7 @@ void Camera::AcqThread::threadFunction()
 				m_cam.m_acq_frame_nb++;
 				Timestamp t1 = Timestamp::now();
 				double delta_time = t1 - t0;
-				DEB_TRACE() << "newFrameReady : elapsed time = " << (int) (delta_time * 1000) << " (ms)";				
+				DEB_TRACE() << "AcqThread : newFrameReady elapsed time = " << (int) (delta_time * 1000) << " (ms)";				
 				//wait latency after each frame , except for the last image
 				if(!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames)
 				{
@@ -555,12 +560,12 @@ bool Camera::checkTrigMode(TrigMode mode)
 	switch(mode)
 	{
 		case IntTrig:
-		case ExtTrigSingle:
+		case ExtTrigMult:
 		case ExtGate:
 			valid_mode = true;
 			break;
 		case ExtTrigReadout:
-		case ExtTrigMult:
+		case ExtTrigSingle:
 		case IntTrigMult:
 		default:
 			valid_mode = false;
@@ -594,7 +599,7 @@ void Camera::setTrigMode(TrigMode mode)
 			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);
 			DEB_TRACE() << "TUCAM_Cap_SetTrigger : TUCCM_TRIGGER_SOFTWARE (EXPOSURE SOFTWARE)";
 			break;
-		case ExtTrigSingle:
+		case ExtTrigMult :
 			tgrAttr.nTgrMode = TUCCM_TRIGGER_STANDARD;
 			tgrAttr.nExpMode = TUCTE_EXPTM;
 			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);
@@ -606,7 +611,7 @@ void Camera::setTrigMode(TrigMode mode)
 			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);
 			DEB_TRACE() << "TUCAM_Cap_SetTrigger : TUCCM_TRIGGER_STANDARD (EXPOSURE TRIGGER WIDTH: "<<tgrAttr.nExpMode<<")";
 			break;			
-		case ExtTrigMult:		
+		case ExtTrigSingle :		
 		case IntTrigMult:
 		case ExtTrigReadout:
 		default:
@@ -825,8 +830,7 @@ void Camera::checkRoi(const Roi& set_roi, Roi& hw_roi)
 			!IS_POWER_OF_2(set_roi.getSize().getWidth())	|| (set_roi.getSize().getWidth()) < 32	||
 			!IS_POWER_OF_2(set_roi.getSize().getHeight())	|| (set_roi.getSize().getHeight()) < 32)
 		{
-			THROW_HW_ERROR(Error) << "Roi coordinates (x, y, width, height) must be a power of 2 AND must be at least 32 !"
-			 "2!";
+			THROW_HW_ERROR(Error) << "Roi coordinates (x, y, width, height) must be a power of 2 AND must be at least 32 !";
 		}
 		hw_roi = set_roi;
 	}
