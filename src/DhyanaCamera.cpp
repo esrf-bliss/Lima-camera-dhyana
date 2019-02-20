@@ -180,7 +180,7 @@ void Camera::startAcq()
 	StdBufferCbMgr& buffer_mgr = m_bufferCtrlObj.getBuffer();
 	buffer_mgr.setStartTimestamp(Timestamp::now());
 	
-	DEB_TRACE() << "Ensure that Acquisition is Started  & wait thread to be started";
+	DEB_TRACE() << "Ensure that Acquisition is Started  & wait thread to be started ...";
 	setStatus(Camera::Exposure, false);		
 	//Start acquisition thread & wait 
 	{
@@ -239,7 +239,7 @@ void Camera::stopAcq()
 	double delta_time = t1 - t0;
 	DEB_TRACE() << "stopAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
 	
-	DEB_TRACE() << "Ensure that Acquisition is Stopped ";
+	DEB_TRACE() << "Ensure that Acquisition is Stopped";
 }
 
 //-----------------------------------------------------
@@ -299,7 +299,7 @@ void Camera::AcqThread::threadFunction()
 	{
 		while(m_cam.m_wait_flag && !m_cam.m_quit)
 		{
-			DEB_TRACE() << "AcqThread : Wait for start acquisition ...";
+			DEB_TRACE() << "Wait for start acquisition ...";
 			m_cam.m_thread_running = false;
 			m_cam.m_cond.broadcast();
 			m_cam.m_cond.wait();
@@ -309,7 +309,7 @@ void Camera::AcqThread::threadFunction()
 		if(m_cam.m_quit)
 			return;
 
-		DEB_TRACE() << "AcqThread Running";
+		DEB_TRACE() << "Running ...";
 		m_cam.m_thread_running = true;
 		m_cam.m_cond.broadcast();
 		aLock.unlock();		
@@ -319,10 +319,10 @@ void Camera::AcqThread::threadFunction()
 		while(continueFlag && (!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames))
 		{
 			// Check first if acq. has been stopped
-			////DEB_TRACE() << "AcqThread : Check first if acq. has been stopped ";
+			////DEB_TRACE() << "Check first if acq. has been stopped ";
 			if(m_cam.m_wait_flag)
 			{
-				DEB_TRACE() << "AcqThread: has been stopped from user ";
+				DEB_TRACE() << "AcqThread has been stopped from user";
 				continueFlag = false;
 				continue;
 			}
@@ -331,13 +331,20 @@ void Camera::AcqThread::threadFunction()
 			m_cam.setStatus(Camera::Exposure, false);
 
 			//wait frame from TUCAM API ...
-			DEB_TRACE() << "AcqThread: Wait frame from TUCAM API ...";
+			DEB_TRACE() << "Wait frame from TUCAM API ...";
 			Timestamp t0_capture = Timestamp::now();
 			if(TUCAMRET_SUCCESS == TUCAM_Buf_WaitForFrame(m_cam.m_opCam.hIdxTUCam, &m_cam.m_frame))
 			{
 				Timestamp t1_capture = Timestamp::now();
 				double delta_time_capture = t1_capture - t0_capture;
-				DEB_TRACE() << "AcqThread : capture elapsed time = " << (int) (delta_time_capture * 1000) << " (ms)";		
+				DEB_TRACE() << "Capture elapsed time = " << (int) (delta_time_capture * 1000) << " (ms)";		
+				
+				//Generate software trigger for each frame, except for the first image becaus eit is already done in startAcq()
+				if((!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames) && (m_cam.m_trigger_mode == IntTrig))
+				{
+					DEB_TRACE() << "DoSoftwareTrigger ";
+					TUCAM_Cap_DoSoftwareTrigger(m_cam.m_opCam.hIdxTUCam);
+				}			
 				
 				//The based information
 				//DEB_TRACE() << "m_cam.m_frame.szSignature = "	<< m_cam.m_frame.szSignature<<std::endl;		// [out]Copyright+Version: TU+1.0 ['T', 'U', '1', '\0']		
@@ -357,11 +364,11 @@ void Camera::AcqThread::threadFunction()
 				//DEB_TRACE() << "m_cam.m_frame.uiHstSize = "	<< m_cam.m_frame.uiHstSize<<std::endl;			// [out] The frame histogram size	
 
 				// Grabbing was successful, process image
-				DEB_TRACE() << "AcqThread: Frame from TUCAM API has arrived";
+				////DEB_TRACE() << "Frame from TUCAM API has arrived";
 				m_cam.setStatus(Camera::Readout, false);
 
 				//Prepare Lima Frame Ptr 
-				////DEB_TRACE() << "AcqThread : Prepare  Lima Frame Ptr";
+				////DEB_TRACE() << "Prepare  Lima Frame Ptr";
 				void* bptr = buffer_mgr.getFrameBufferPtr(m_cam.m_acq_frame_nb);
 
 				//Copy Frame into Lima Frame Ptr
@@ -370,51 +377,44 @@ void Camera::AcqThread::threadFunction()
 		
 				//Push the image buffer through Lima 
 				Timestamp t0 = Timestamp::now();
-				DEB_TRACE() << "AcqThread : Declare a Lima new Frame Ready (" << m_cam.m_acq_frame_nb << ")";
+				////DEB_TRACE() << "Declare a Lima new Frame Ready (" << m_cam.m_acq_frame_nb << ")";
 				HwFrameInfoType frame_info;
 				frame_info.acq_frame_nb = m_cam.m_acq_frame_nb;
 				continueFlag = buffer_mgr.newFrameReady(frame_info);
 				m_cam.m_acq_frame_nb++;
 				Timestamp t1 = Timestamp::now();
 				double delta_time = t1 - t0;
-				DEB_TRACE() << "AcqThread : newFrameReady elapsed time = " << (int) (delta_time * 1000) << " (ms)";				
+				////DEB_TRACE() << "newFrameReady elapsed time = " << (int) (delta_time * 1000) << " (ms)";				
 				//wait latency after each frame , except for the last image
 				if(!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames)
 				{
-					DEB_TRACE() << "AcqThread : Wait latency time : " << m_cam.m_lat_time * 1000000 << " (us) ";
+					DEB_TRACE() << "Wait latency time : " << m_cam.m_lat_time * 1000 << " (ms) ...";
 					usleep((DWORD) (m_cam.m_lat_time * 1000000));
-				}
-
-				//Generate software trigger for each frame, except for the first image
-				if((!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames) && (m_cam.m_trigger_mode == IntTrig))
-				{
-					DEB_TRACE() << "AcqThread : DoSoftwareTrigger ";
-					TUCAM_Cap_DoSoftwareTrigger(m_cam.m_opCam.hIdxTUCam);
 				}
 			}
 			else
 			{
-				DEB_TRACE() << "AcqThread : Unable to get the frame from the camera !";
+				DEB_TRACE() << "Unable to get the frame from the camera !";
 				//m_cam.setStatus(Camera::Fault,false);
 			}
 		}
 
 		//
-		DEB_TRACE() << "AcqThread : SetEvent";
+		DEB_TRACE() << "SetEvent";
 		SetEvent(m_cam.m_hThdEvent);
 		//@END
 		
 		//stopAcq only if this is not already done		
-		DEB_TRACE() << "AcqThread : stopAcq only if this is not already done ";
+		DEB_TRACE() << "stopAcq only if this is not already done";
 		if(!m_cam.m_wait_flag)
 		{
-			DEB_TRACE() << " AcqThread: StopAcq";
+			DEB_TRACE() << "stopAcq";
 			m_cam.stopAcq();
 		}
 
 				//now detector is ready
 		m_cam.setStatus(Camera::Ready, false);
-		DEB_TRACE() << " AcqThread: thread is no more running (m_thread_running = false, m_wait_flag = true)";		
+		DEB_TRACE() << "AcqThread is no more running";		
 		aLock.lock();
 		m_cam.m_thread_running = false;
 		m_cam.m_wait_flag = true;
@@ -472,7 +472,7 @@ void Camera::getImageType(ImageType& type)
 void Camera::setImageType(ImageType type)
 {
 	DEB_MEMBER_FUNCT();
-	DEB_TRACE() << "Camera::setImageType - " << DEB_VAR1(type);
+	DEB_TRACE() << "setImageType - " << DEB_VAR1(type);
 	//@BEGIN : Fix the image type (pixel depth) into Driver/API	
 	switch(type)
 	{
@@ -581,7 +581,7 @@ bool Camera::checkTrigMode(TrigMode mode)
 void Camera::setTrigMode(TrigMode mode)
 {
 	DEB_MEMBER_FUNCT();
-	DEB_TRACE() << "Camera::setTrigMode() " << DEB_VAR1(mode);
+	DEB_TRACE() << "setTrigMode() " << DEB_VAR1(mode);
 	DEB_PARAM() << DEB_VAR1(mode);
 	//@BEGIN
 	TUCAM_TRIGGER_ATTR tgrAttr;
@@ -656,7 +656,7 @@ void Camera::getExpTime(double& exp_time)
 void Camera::setExpTime(double exp_time)
 {
 	DEB_MEMBER_FUNCT();
-	DEB_TRACE() << "Camera::setExpTime() " << DEB_VAR1(exp_time);
+	DEB_TRACE() << "setExpTime() " << DEB_VAR1(exp_time);
 	//@BEGIN
 	if(TUCAMRET_SUCCESS != TUCAM_Prop_SetValue(m_opCam.hIdxTUCam, TUIDP_EXPOSURETM, exp_time * 1000))//TUCAM use (ms), but lima use (second) as unit 
 	{
@@ -673,7 +673,7 @@ void Camera::setExpTime(double exp_time)
 void Camera::setLatTime(double lat_time)
 {
 	DEB_MEMBER_FUNCT();
-	DEB_TRACE() << "Camera::setLatTime() " << DEB_VAR1(lat_time);
+	DEB_TRACE() << "setLatTime() " << DEB_VAR1(lat_time);
 	m_lat_time = lat_time;
 }
 
@@ -723,7 +723,7 @@ void Camera::getLatTimeRange(double& min_lat, double& max_lat) const
 void Camera::setNbFrames(int nb_frames)
 {
 	DEB_MEMBER_FUNCT();
-	DEB_TRACE() << "Camera::setNbFrames() " << DEB_VAR1(nb_frames);
+	DEB_TRACE() << "setNbFrames() " << DEB_VAR1(nb_frames);
 	//@BEGIN
 	if(nb_frames < 0)
 	{
@@ -743,7 +743,6 @@ void Camera::setNbFrames(int nb_frames)
 void Camera::getNbFrames(int& nb_frames)
 {
 	DEB_MEMBER_FUNCT();
-	DEB_TRACE() << "Camera::getNbFrames";
 	DEB_RETURN() << DEB_VAR1(m_nb_frames);
 	//@BEGIN
 	//@END
@@ -819,7 +818,7 @@ void Camera::getBin(Bin &hw_bin)
 void Camera::checkRoi(const Roi& set_roi, Roi& hw_roi)
 {
 	DEB_MEMBER_FUNCT();
-	DEB_TRACE() << "Camera::checkRoi";
+	DEB_TRACE() << "checkRoi";
 	DEB_PARAM() << DEB_VAR1(set_roi);
 	//@BEGIN : check available values of Roi
 	if(set_roi.isActive())
@@ -850,7 +849,6 @@ void Camera::checkRoi(const Roi& set_roi, Roi& hw_roi)
 void Camera::getRoi(Roi& hw_roi)
 {
 	DEB_MEMBER_FUNCT();
-	DEB_TRACE() << "Camera::getRoi";
 	//@BEGIN : get Roi from the Driver/API
 	TUCAM_ROI_ATTR roiAttr;
 	if(TUCAMRET_SUCCESS != TUCAM_Cap_GetROI(m_opCam.hIdxTUCam, &roiAttr))
@@ -872,7 +870,7 @@ void Camera::getRoi(Roi& hw_roi)
 void Camera::setRoi(const Roi& set_roi)
 {
 	DEB_MEMBER_FUNCT();
-	DEB_TRACE() << "Camera::setRoi";
+	DEB_TRACE() << "setRoi";
 	DEB_PARAM() << DEB_VAR1(set_roi);
 	//@BEGIN : set Roi from the Driver/API	
 	if(!set_roi.isActive())
