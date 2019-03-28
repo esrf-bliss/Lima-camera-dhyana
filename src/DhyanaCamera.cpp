@@ -47,8 +47,7 @@ m_depth(16),
 m_trigger_mode(IntTrig),
 m_status(Ready),
 m_acq_frame_nb(0),
-m_temperature_target(0),
-m_hThdEvent(NULL)
+m_temperature_target(0)
 {
 
 	DEB_CONSTRUCTOR();	
@@ -83,7 +82,7 @@ void Camera::init()
 	DEB_MEMBER_FUNCT();
 
 	DEB_TRACE() << "Initialize TUCAM API ...";
-	m_itApi.pstrConfigPath = "c:\\DeviceServers";
+	m_itApi.pstrConfigPath = NULL;//Camera parameters input saving path is not defined
 	m_itApi.uiCamCount = 0;
 
 	if(TUCAMRET_SUCCESS != TUCAM_Api_Init(&m_itApi))
@@ -99,9 +98,8 @@ void Camera::init()
 	}
 
 	DEB_TRACE() << "Open TUCAM API ...";
-	m_opCam.hIdxTUCam = 0;
-	m_opCam.uiIdxOpen = 0;
-
+	m_opCam.hIdxTUCam = NULL;
+	m_opCam.uiIdxOpen = 0;	
 	if(TUCAMRET_SUCCESS != TUCAM_Dev_Open(&m_opCam))
 	{
 		// Failed to open camera
@@ -112,6 +110,9 @@ void Camera::init()
 	{
 		THROW_HW_ERROR(Error) << "Unable to open the camera !";
 	}
+	
+	//initialize TUCAM Event used when Waiting for Frame
+	m_hThdEvent = NULL;
 }
 
 //-----------------------------------------------------
@@ -412,7 +413,7 @@ void Camera::AcqThread::threadFunction()
 			m_cam.stopAcq();
 		}
 
-				//now detector is ready
+		//now detector is ready
 		m_cam.setStatus(Camera::Ready, false);
 		DEB_TRACE() << "AcqThread is no more running";		
 		aLock.lock();
