@@ -9,7 +9,7 @@
 
     <groupId>fr.soleil.lib.Lima.Camera</groupId>
     <artifactId>LimaDhyana-${aol}-shared-${mode}</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 	
     <packaging>nar</packaging>
     <name>LimaDhyana</name>
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>fr.soleil.lib</groupId>
             <artifactId>LimaCore-${aol}-shared-${mode}</artifactId>
-            <version>1.7.7</version>
+            <version>1.7.8</version>
         </dependency>
         
         <dependency>
