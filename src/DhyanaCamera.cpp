@@ -771,8 +771,8 @@ void Camera::checkBin(Bin &hw_bin)
 	int y = hw_bin.getY();
 	if(x != 1 || y != 1)
 	{
-		DEB_ERROR() << "Binning values not supported";
-		THROW_HW_ERROR(Error) << "Binning values not supported = " << DEB_VAR1(hw_bin);
+		DEB_ERROR() << "Binning is not supported";
+		THROW_HW_ERROR(Error) << "Binning is not supported = " << DEB_VAR1(hw_bin);
 	}
 	//@END
 
@@ -824,14 +824,6 @@ void Camera::checkRoi(const Roi& set_roi, Roi& hw_roi)
 	//@BEGIN : check available values of Roi
 	if(set_roi.isActive())
 	{
-		// Taking care of the value increment, roi parameters must be power of 2 and > 32 . 
-		if(	!IS_POWER_OF_2(set_roi.getTopLeft().x)			|| (set_roi.getTopLeft().x) < 32		||
-			!IS_POWER_OF_2(set_roi.getTopLeft().y)			|| (set_roi.getTopLeft().y) < 32		||
-			!IS_POWER_OF_2(set_roi.getSize().getWidth())	|| (set_roi.getSize().getWidth()) < 32	||
-			!IS_POWER_OF_2(set_roi.getSize().getHeight())	|| (set_roi.getSize().getHeight()) < 32)
-		{
-			THROW_HW_ERROR(Error) << "Roi coordinates (x, y, width, height) must be a power of 2 AND must be at least 32 !";
-		}
 		hw_roi = set_roi;
 	}
 	else
