@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>fr.soleil</groupId>
+        <artifactId>super-pom-C-CPP</artifactId>
+		<version>18.1.2</version>
+    </parent>
+
+    <groupId>fr.soleil.lib.Lima.Camera</groupId>
+    <artifactId>LimaDhyana-${aol}-shared-${mode}</artifactId>
+    <version>1.2.0</version>
+	
+    <packaging>nar</packaging>
+    <name>LimaDhyana</name>
+    <description>This module controls the TUcsen Dhyana Detector</description>
+
+    <scm>
+        <connection>scm:git:git://github.com/soleil-ica/Lima-camera-dhyana.git</connection>
+        <developerConnection>scm:git:git://github.com/soleil-ica/Lima-camera-dhyana.git</developerConnection>
+        <url>https://github.com/soleil-ica/Lima-camera-dhyana</url>
+    </scm>
+
+	<properties>
+        <libs-64bits>C:\VC_12_MAVEN\LIB_VC12_64</libs-64bits>
+
+		<yat-lib>${libs-64bits}\yat\target\nar\lib\amd64-Windows-msvc\shared\</yat-lib>
+		<yat-include>${libs-64bits}\yat\target\nar\include\</yat-include>
+
+		<hdf5-lib>${libs-64bits}\hdf5\lib\x64\</hdf5-lib>
+		<hdf5-include>${libs-64bits}\hdf5\include\</hdf5-include>
+		
+		<nexuscpp-lib>${libs-64bits}\nexuscpp\target\nar\lib\amd64-Windows-msvc\shared</nexuscpp-lib>
+		<nexuscpp-include>${libs-64bits}\nexuscpp\target\nar\include\</nexuscpp-include>
+		
+		<sdkdhyana-lib>${project.basedir}\sdk\msvc\lib\x64\</sdkdhyana-lib>
+		<sdkdhyana-include>${project.basedir}\sdk\msvc\include\</sdkdhyana-include>
+	</properties>
+	
+    <dependencies>
+        <dependency>
+            <groupId>fr.soleil.lib</groupId>
+            <artifactId>LimaCore-${aol}-shared-${mode}</artifactId>
+            <version>1.7.9</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.freehep</groupId>
+                <artifactId>freehep-nar-plugin</artifactId>
+				<version>2.0-alpha-17-SOLEIL</version>
+                <configuration>
+                    <cpp>
+                        <sourceDirectory>${project.basedir}</sourceDirectory>                                               
+                        <includePaths>                          
+                            <includePath>include</includePath>
+							<includePath>${yat-include}</includePath>
+							<includePath>${nexuscpp-include}</includePath>
+							<includePath>${hdf5-include}</includePath>
+							<includePath>${sdkdhyana-include}</includePath>
+                        </includePaths>      
+                        <!-- define less verbose mode for gcc-->
+                        <options>
+                            <option>-w</option>
+                        </options>				
+                        <defines>
+							<define>LIBDHYANA_EXPORTS</define>
+                            <define>WIN32</define>
+                            <define>NDEBUG</define>
+                            <define>_WINDOWS</define>
+                            <define>_USRDLL</define>					
+                            <define>_WIN32_WINNT=_WIN32_WINNT_WIN7</define>
+                            <define>WIN32_LEAN_AND_MEAN</define>					
+						</defines>                  
+                    </cpp>
+					<linker>
+                        <libs>
+                            <lib>
+                                <!-- tucam -->
+                                <name>TUCam</name>
+                                <type>shared</type>
+                                <directory>${sdkdhyana-lib}</directory>
+                            </lib>
+						
+							<!-- nexuscpp 64 bits -->
+							<lib>
+								<name>NexusCPP-amd64-Windows-msvc12-shared-release-3.3.2</name>
+								<type>shared</type>
+								<directory>${nexuscpp-lib}</directory>
+							</lib>
+
+							<!-- yat 64 bits -->
+							<lib>
+								<name>YAT-amd64-Windows-msvc12-shared-release-1.14.4</name>
+								<type>shared</type>
+								<directory>${yat-lib}</directory>
+							</lib>
+							
+							<!-- hdf5 64 bits -->
+							<lib>
+								<name>hdf5</name>
+								<type>shared</type>
+								<directory>${hdf5-lib}</directory>
+							</lib>
+
+							<lib>
+								<name>hdf5_hl</name>
+								<type>shared</type>
+								<directory>${hdf5-lib}</directory>
+							</lib>
+
+							<lib>
+								<name>hdf5_cpp</name>
+								<type>shared</type>
+								<directory>${hdf5-lib}</directory>
+							</lib>
+							
+							<lib>
+								<name>hdf5_hl_cpp</name>
+								<type>shared</type>
+								<directory>${hdf5-lib}</directory>
+							</lib>
+                        </libs>
+						<sysLibs>
+                            <sysLib>
+                                <name>winmm</name>
+                                <type>shared</type>
+                                </sysLib>
+                        </sysLibs>						
+				    </linker>
+                    
+                    <libraries>
+                        <library>
+                            <type>shared</type>
+                        </library>
+                    </libraries>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+		
+    <developers>
+        <developer>
+            <id>langlois</id>
+            <name>langlois</name>
+            <url>http://controle/</url>
+            <organization>Synchrotron Soleil</organization>
+            <organizationUrl>http://www.synchrotron-soleil.fr</organizationUrl>
+            <roles>
+                <role>manager</role>
+            </roles>
+            <timezone>1</timezone>
+        </developer>
+        <developer>
+            <id>noureddine</id>
+            <name>noureddine</name>
+            <url>http://controle/</url>
+            <organization>Synchrotron Soleil</organization>
+            <organizationUrl>http://www.synchrotron-soleil.fr</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>1</timezone>
+        </developer>
+    </developers>
+    
+</project>
