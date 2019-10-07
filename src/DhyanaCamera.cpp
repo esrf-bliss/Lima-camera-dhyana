@@ -33,6 +33,7 @@
 #include "lima/Exceptions.h"
 #include "lima/Debug.h"
 #include "lima/MiscUtils.h"
+#include "DhyanaTimer.h"
 #include "DhyanaCamera.h"
 
 using namespace lima;
@@ -42,20 +43,23 @@ using namespace std;
 //---------------------------
 // @brief  Ctor
 //---------------------------
-Camera::Camera():
+Camera::Camera(unsigned short timer_period_ms):
 m_depth(16),
 m_trigger_mode(IntTrig),
 m_status(Ready),
 m_acq_frame_nb(0),
-m_temperature_target(0)
+m_temperature_target(0),
+m_timer_period_ms(timer_period_ms)
 {
 
 	DEB_CONSTRUCTOR();	
 	//Init TUCAM	
 	init();		
 	//create the acquisition thread
-	DEB_TRACE() << "Create the acquisition thread ...";
+	DEB_TRACE() << "Create the acquisition thread";
 	m_acq_thread = new AcqThread(*this);
+	DEB_TRACE() <<"Create the Internal Trigger Timer";
+	m_internal_trigger_timer = new CSoftTriggerTimer(m_timer_period_ms, *this);
 	m_acq_thread->start();
 	
 }
@@ -66,12 +70,18 @@ m_temperature_target(0)
 Camera::~Camera()
 {
 	DEB_DESTRUCTOR();
+	// Close camera
 	DEB_TRACE() << "Close TUCAM API ...";
-	TUCAM_Dev_Close(m_opCam.hIdxTUCam);// Close camera
+	TUCAM_Dev_Close(m_opCam.hIdxTUCam);
+	// Uninitialize SDK API environment
 	DEB_TRACE() << "Uninitialize TUCAM API ...";
-	TUCAM_Api_Uninit();// Uninitialize SDK API environment
-	DEB_TRACE() << "Delete the acquisition thread ...";
+	TUCAM_Api_Uninit();
+	//delete the acquisition thread
+	DEB_TRACE() << "Delete the acquisition thread";
 	delete m_acq_thread;
+	//delete the Internal Trigger Timer
+	DEB_TRACE() << "Delete the Internal Trigger Timer";
+	delete m_internal_trigger_timer;
 }
 
 //-----------------------------------------------------
@@ -137,7 +147,8 @@ void Camera::prepareAcq()
 	Timestamp t0 = Timestamp::now();
 
 	//@BEGIN : Ensure that Acquisition is Started before return ...
-	DEB_TRACE() << "Ensure that Acquisition is Started  ";
+	DEB_TRACE() << "prepareAcq ...";
+	DEB_TRACE() << "Ensure that Acquisition is Started";
 	setStatus(Camera::Exposure, false);
 	if(NULL == m_hThdEvent)
 	{
@@ -145,20 +156,38 @@ void Camera::prepareAcq()
 		m_frame.ucFormatGet = TUFRM_FMT_RAW;
 		m_frame.uiRsdSize = 1;// how many frames do you want
 
+		// Alloc buffer after set resolution or set ROI attribute
 		DEB_TRACE() << "TUCAM_Buf_Alloc";
-		TUCAM_Buf_Alloc(m_opCam.hIdxTUCam, &m_frame);// Alloc buffer after set resolution or set ROI attribute
+		TUCAM_Buf_Alloc(m_opCam.hIdxTUCam, &m_frame);
 
 		DEB_TRACE() << "TUCAM_Cap_Start";
 		if(m_trigger_mode == IntTrig)
-			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE);// Start capture in software trigger
+		{
+			// Start capture in software trigger
+			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE);
+		}
 		else if(m_trigger_mode == ExtTrigMult)
-			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);// Start capture in external trigger STANDARD (EXPOSURE SOFT)
+		{
+			// Start capture in external trigger STANDARD (EXPOSURE SOFT)
+			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
+		}
 		else if(m_trigger_mode == ExtGate)
-			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);// Start capture in external trigger STANDARD (EXPOSURE WIDTH)
+		{
+			// Start capture in external trigger STANDARD (EXPOSURE WIDTH)
+			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
+		}
 		
-		DEB_TRACE() << "CreateEvent";
+		////DEB_TRACE() << "TUCAM CreateEvent";
 		m_hThdEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	}
+	
+	//@BEGIN : trigger the acquisition
+	if(m_trigger_mode == IntTrig)	
+	{
+		DEB_TRACE() <<"Start Internal Trigger Timer";
+		m_internal_trigger_timer->start();
+	}
+	//@END
 	
 	Timestamp t1 = Timestamp::now();
 	double delta_time = t1 - t0;
@@ -181,7 +210,7 @@ void Camera::startAcq()
 	StdBufferCbMgr& buffer_mgr = m_bufferCtrlObj.getBuffer();
 	buffer_mgr.setStartTimestamp(Timestamp::now());
 	
-	DEB_TRACE() << "Ensure that Acquisition is Started  & wait thread to be started ...";
+	DEB_TRACE() << "Ensure that Acquisition is Started  & wait thread to be started";
 	setStatus(Camera::Exposure, false);		
 	//Start acquisition thread & wait 
 	{
@@ -190,14 +219,6 @@ void Camera::startAcq()
 		m_cond.broadcast();
 		m_cond.wait();
 	}
-	
-	//@BEGIN : tigger the acquisition
-	if(m_trigger_mode == IntTrig)	
-	{
-		DEB_TRACE() << "DoSoftwareTrigger ";
-		TUCAM_Cap_DoSoftwareTrigger(m_opCam.hIdxTUCam);
-	}
-	//@END
 	
 	Timestamp t1 = Timestamp::now();
 	double delta_time = t1 - t0;
@@ -216,31 +237,44 @@ void Camera::stopAcq()
 	if(m_thread_running == true)
 	{
 		m_wait_flag = true;
-		m_cond.broadcast();
-		DEB_TRACE() << "stop requested ";
+		m_cond.broadcast();		
 	}
 
 	//@BEGIN : Ensure that Acquisition is Stopped before return ...			
 	Timestamp t0 = Timestamp::now();
 	if(NULL != m_hThdEvent)
 	{
-		TUCAM_Buf_AbortWait(m_opCam.hIdxTUCam);// If you called TUCAM_Buf_WaitForFrames()
+		DEB_TRACE() << "TUCAM_Buf_AbortWait";
+		TUCAM_Buf_AbortWait(m_opCam.hIdxTUCam);
 		WaitForSingleObject(m_hThdEvent, INFINITE);
 		CloseHandle(m_hThdEvent);
 		m_hThdEvent = NULL;
-		TUCAM_Cap_Stop(m_opCam.hIdxTUCam);// Stop capture   
-		TUCAM_Buf_Release(m_opCam.hIdxTUCam);// Release alloc buffer after stop capture
+		// Stop capture   
+		DEB_TRACE() << "TUCAM_Cap_Stop";
+		TUCAM_Cap_Stop(m_opCam.hIdxTUCam);
+		// Release alloc buffer after stop capture
+		DEB_TRACE() << "TUCAM_Buf_Release";
+		TUCAM_Buf_Release(m_opCam.hIdxTUCam);
 	}
-
+	//@END	
+	
+	//@BEGIN : trigger the acquisition
+	if(m_trigger_mode == IntTrig)	
+	{
+		DEB_TRACE() <<"Stop Internal Trigger Timer";
+		m_internal_trigger_timer->stop();
+	}
+	//@END
+	
+	//@BEGIN
 	//now detector is ready
+	DEB_TRACE() << "Ensure that Acquisition is Stopped";
 	setStatus(Camera::Ready, false);
 	//@END	
 	
 	Timestamp t1 = Timestamp::now();
 	double delta_time = t1 - t0;
-	DEB_TRACE() << "stopAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
-	
-	DEB_TRACE() << "Ensure that Acquisition is Stopped";
+	DEB_TRACE() << "stopAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";		
 }
 
 //-----------------------------------------------------
@@ -315,12 +349,14 @@ void Camera::AcqThread::threadFunction()
 		m_cam.m_cond.broadcast();
 		aLock.unlock();		
 
+		Timestamp t0_capture = Timestamp::now();
+
 		//@BEGIN 
+		DEB_TRACE() << "Capture all frames ...";
 		bool continueFlag = true;
 		while(continueFlag && (!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames))
 		{
 			// Check first if acq. has been stopped
-			////DEB_TRACE() << "Check first if acq. has been stopped ";
 			if(m_cam.m_wait_flag)
 			{
 				DEB_TRACE() << "AcqThread has been stopped from user";
@@ -330,23 +366,15 @@ void Camera::AcqThread::threadFunction()
 
 			//set status to exposure
 			m_cam.setStatus(Camera::Exposure, false);
-
+			
 			//wait frame from TUCAM API ...
-			DEB_TRACE() << "Wait frame from TUCAM API ...";
-			Timestamp t0_capture = Timestamp::now();
+			if(m_cam.m_acq_frame_nb == 0)//display TRACE only once ...
+			{				
+				DEB_TRACE() << "TUCAM_Buf_WaitForFrame ...";
+			}
+			
 			if(TUCAMRET_SUCCESS == TUCAM_Buf_WaitForFrame(m_cam.m_opCam.hIdxTUCam, &m_cam.m_frame))
 			{
-				Timestamp t1_capture = Timestamp::now();
-				double delta_time_capture = t1_capture - t0_capture;
-				DEB_TRACE() << "Capture elapsed time = " << (int) (delta_time_capture * 1000) << " (ms)";		
-				
-				//Generate software trigger for each frame, except for the first image becaus eit is already done in startAcq()
-				if((!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames) && (m_cam.m_trigger_mode == IntTrig))
-				{
-					DEB_TRACE() << "DoSoftwareTrigger ";
-					TUCAM_Cap_DoSoftwareTrigger(m_cam.m_opCam.hIdxTUCam);
-				}			
-				
 				//The based information
 				//DEB_TRACE() << "m_cam.m_frame.szSignature = "	<< m_cam.m_frame.szSignature<<std::endl;		// [out]Copyright+Version: TU+1.0 ['T', 'U', '1', '\0']		
 				//DEB_TRACE() << "m_cam.m_frame.usHeader = "	<< m_cam.m_frame.usHeader<<std::endl;			// [out] The frame header size
@@ -365,11 +393,9 @@ void Camera::AcqThread::threadFunction()
 				//DEB_TRACE() << "m_cam.m_frame.uiHstSize = "	<< m_cam.m_frame.uiHstSize<<std::endl;			// [out] The frame histogram size	
 
 				// Grabbing was successful, process image
-				////DEB_TRACE() << "Frame from TUCAM API has arrived";
 				m_cam.setStatus(Camera::Readout, false);
 
 				//Prepare Lima Frame Ptr 
-				////DEB_TRACE() << "Prepare  Lima Frame Ptr";
 				void* bptr = buffer_mgr.getFrameBufferPtr(m_cam.m_acq_frame_nb);
 
 				//Copy Frame into Lima Frame Ptr
@@ -385,23 +411,22 @@ void Camera::AcqThread::threadFunction()
 				m_cam.m_acq_frame_nb++;
 				Timestamp t1 = Timestamp::now();
 				double delta_time = t1 - t0;
-				////DEB_TRACE() << "newFrameReady elapsed time = " << (int) (delta_time * 1000) << " (ms)";				
-				//wait latency after each frame , except for the last image
-				if(!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames)
+				
+				//wait latency after each frame , except for the last image 
+				if((!m_cam.m_nb_frames) || (m_cam.m_acq_frame_nb < m_cam.m_nb_frames) && (m_cam.m_lat_time))
 				{
-					DEB_TRACE() << "Wait latency time : " << m_cam.m_lat_time * 1000 << " (ms) ...";
+					////DEB_TRACE() << "Wait latency time : " << m_cam.m_lat_time * 1000 << " (ms) ...";
 					usleep((DWORD) (m_cam.m_lat_time * 1000000));
-				}
+				}				
 			}
 			else
 			{
 				DEB_TRACE() << "Unable to get the frame from the camera !";
-				//m_cam.setStatus(Camera::Fault,false);
 			}
 		}
 
 		//
-		DEB_TRACE() << "SetEvent";
+		////DEB_TRACE() << "TUCAM SetEvent";
 		SetEvent(m_cam.m_hThdEvent);
 		//@END
 		
@@ -409,13 +434,18 @@ void Camera::AcqThread::threadFunction()
 		DEB_TRACE() << "stopAcq only if this is not already done";
 		if(!m_cam.m_wait_flag)
 		{
-			DEB_TRACE() << "stopAcq";
+			////DEB_TRACE() << "stopAcq";
 			m_cam.stopAcq();
 		}
 
 		//now detector is ready
 		m_cam.setStatus(Camera::Ready, false);
 		DEB_TRACE() << "AcqThread is no more running";		
+		
+		Timestamp t1_capture = Timestamp::now();
+		double delta_time_capture = t1_capture - t0_capture;
+		DEB_TRACE() << "Capture all frames elapsed time = " << (int) (delta_time_capture * 1000) << " (ms)";				
+		
 		aLock.lock();
 		m_cam.m_thread_running = false;
 		m_cam.m_wait_flag = true;
@@ -771,8 +801,8 @@ void Camera::checkBin(Bin &hw_bin)
 	int y = hw_bin.getY();
 	if(x != 1 || y != 1)
 	{
-		DEB_ERROR() << "Binning is not supported";
-		THROW_HW_ERROR(Error) << "Binning is not supported = " << DEB_VAR1(hw_bin);
+		DEB_ERROR() << "Binning values not supported";
+		THROW_HW_ERROR(Error) << "Binning values not supported = " << DEB_VAR1(hw_bin);
 	}
 	//@END
 

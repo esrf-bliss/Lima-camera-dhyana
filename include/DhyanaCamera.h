@@ -35,6 +35,7 @@
 #include "lima/HwBufferMgr.h"
 #include "lima/HwInterface.h"
 #include "lima/Debug.h"
+#include "lima/Timer.h"
 #include "TUCamApi.h"
 #include "TUDefine.h"
 
@@ -52,6 +53,7 @@ const int PIXEL_NB_WIDTH  = 2048;
 const int PIXEL_NB_HEIGHT = 2048;
 
 class BufferCtrlObj;
+class CSoftTriggerTimer;
 
 /*******************************************************************
  * \class Camera
@@ -68,7 +70,7 @@ public:
         Ready, Exposure, Readout, Latency, Fault
     } ;
 
-    Camera();
+    Camera(unsigned short timer_period_ms);
     virtual ~Camera();
 
     void init();
@@ -133,6 +135,11 @@ public:
     void getFirmwareVersion(std::string& version);
     bool isAcqRunning() const;
 
+	//TUCAM stuff, use TUCAM notations !
+	TUCAM_INIT          m_itApi; // TUCAM handle Api
+	TUCAM_OPEN          m_opCam; // TUCAM handle camera
+	TUCAM_FRAME         m_frame; // TUCAM frame structure
+	HANDLE              m_hThdEvent; // TUCAM handle event   
 private:
     //read/copy frame
     bool readFrame(void *bptr, int& frame_nb);
@@ -171,12 +178,8 @@ private:
     double              m_temperature_target;
     // Buffer control object
     SoftBufferCtrlObj   m_bufferCtrlObj;
-
-    //TUCAM stuff, use TUCAM notations !
-    TUCAM_INIT          m_itApi; // TUCAM handle Api
-    TUCAM_OPEN          m_opCam; // TUCAM handle camera
-    TUCAM_FRAME         m_frame; // TUCAM frame structure
-    HANDLE              m_hThdEvent; // TUCAM handle event   
+	CSoftTriggerTimer*	m_internal_trigger_timer;
+	unsigned short 		m_timer_period_ms;
 
 } ;
 
