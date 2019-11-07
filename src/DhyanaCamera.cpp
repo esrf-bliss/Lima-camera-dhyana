@@ -122,7 +122,8 @@ void Camera::init()
 	}
 	
 	//initialize TUCAM Event used when Waiting for Frame
-	m_hThdEvent = NULL;
+	// pthread_cond_init(&m_hThdEvent, NULL);
+	m_hThdStatus = false;
 }
 
 //-----------------------------------------------------
@@ -150,7 +151,7 @@ void Camera::prepareAcq()
 	DEB_TRACE() << "prepareAcq ...";
 	DEB_TRACE() << "Ensure that Acquisition is Started";
 	setStatus(Camera::Exposure, false);
-	if(NULL == m_hThdEvent)
+	if(false == m_hThdStatus)
 	{
 		m_frame.pBuffer = NULL;
 		m_frame.ucFormatGet = TUFRM_FMT_RAW;
@@ -178,7 +179,10 @@ void Camera::prepareAcq()
 		}
 		
 		////DEB_TRACE() << "TUCAM CreateEvent";
-		m_hThdEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+		// m_hThdEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+		// m_hThdEvent = CreateEvent(TRUE, FALSE);
+		pthread_cond_init(&m_hThdEvent, NULL);
+		m_hThdStatus = true;
 	}
 	
 	//@BEGIN : trigger the acquisition
@@ -242,13 +246,18 @@ void Camera::stopAcq()
 
 	//@BEGIN : Ensure that Acquisition is Stopped before return ...			
 	Timestamp t0 = Timestamp::now();
-	if(NULL != m_hThdEvent)
+	if(false != m_hThdStatus)
 	{
 		DEB_TRACE() << "TUCAM_Buf_AbortWait";
 		TUCAM_Buf_AbortWait(m_opCam.hIdxTUCam);
-		WaitForSingleObject(m_hThdEvent, INFINITE);
-		CloseHandle(m_hThdEvent);
-		m_hThdEvent = NULL;
+		pthread_mutex_lock(&m_hThdLock);
+		pthread_cond_wait(&m_hThdEvent, &m_hThdLock);
+		pthread_mutex_unlock(&m_hThdLock);
+		pthread_cond_destroy(&m_hThdEvent);
+		// WaitForEvent(m_hThdEvent, INFINITE);
+		// CloseEvent(m_hThdEvent);
+		// m_hThdEvent = NULL;
+		m_hThdStatus = false;
 		// Stop capture   
 		DEB_TRACE() << "TUCAM_Cap_Stop";
 		TUCAM_Cap_Stop(m_opCam.hIdxTUCam);
@@ -427,7 +436,10 @@ void Camera::AcqThread::threadFunction()
 
 		//
 		////DEB_TRACE() << "TUCAM SetEvent";
-		SetEvent(m_cam.m_hThdEvent);
+		// SetEvent(m_cam.m_hThdEvent);
+		pthread_mutex_lock(&m_cam.m_hThdLock);
+		pthread_cond_signal(&m_cam.m_hThdEvent);
+		pthread_mutex_unlock(&m_cam.m_hThdLock);
 		//@END
 		
 		//stopAcq only if this is not already done		

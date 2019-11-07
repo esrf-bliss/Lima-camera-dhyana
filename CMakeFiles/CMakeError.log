@@ -1,0 +1,51 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /Lima-camera-dhyana/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_061fa/fast 
+/usr/bin/gmake -f CMakeFiles/cmTC_061fa.dir/build.make CMakeFiles/cmTC_061fa.dir/build
+gmake[1]: Entering directory `/Lima-camera-dhyana/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_061fa.dir/CheckSymbolExists.c.o
+/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-cc   -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -ffunction-sections -pipe    -o CMakeFiles/cmTC_061fa.dir/CheckSymbolExists.c.o   -c /Lima-camera-dhyana/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_061fa
+/root/miniconda3/envs/lima/bin/cmake -E cmake_link_script CMakeFiles/cmTC_061fa.dir/link.txt --verbose=1
+/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-cc -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -ffunction-sections -pipe   -Wl,-O2 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro -Wl,-z,now -Wl,--disable-new-dtags -Wl,--gc-sections  -rdynamic CMakeFiles/cmTC_061fa.dir/CheckSymbolExists.c.o  -o cmTC_061fa 
+/root/miniconda3/envs/lima/bin/../lib/gcc/x86_64-conda_cos6-linux-gnu/7.3.0/../../../../x86_64-conda_cos6-linux-gnu/bin/ld: CMakeFiles/cmTC_061fa.dir/CheckSymbolExists.c.o: in function `main':
+CheckSymbolExists.c:(.text.startup.main+0x3): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [cmTC_061fa] Error 1
+gmake[1]: Leaving directory `/Lima-camera-dhyana/CMakeFiles/CMakeTmp'
+gmake: *** [cmTC_061fa/fast] Error 2
+
+File /Lima-camera-dhyana/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /Lima-camera-dhyana/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_96a7d/fast 
+/usr/bin/gmake -f CMakeFiles/cmTC_96a7d.dir/build.make CMakeFiles/cmTC_96a7d.dir/build
+gmake[1]: Entering directory `/Lima-camera-dhyana/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_96a7d.dir/CheckFunctionExists.c.o
+/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-cc   -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -ffunction-sections -pipe -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_96a7d.dir/CheckFunctionExists.c.o   -c /root/miniconda3/envs/lima/share/cmake-3.14/Modules/CheckFunctionExists.c
+Linking C executable cmTC_96a7d
+/root/miniconda3/envs/lima/bin/cmake -E cmake_link_script CMakeFiles/cmTC_96a7d.dir/link.txt --verbose=1
+/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-cc -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -ffunction-sections -pipe -DCHECK_FUNCTION_EXISTS=pthread_create  -Wl,-O2 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro -Wl,-z,now -Wl,--disable-new-dtags -Wl,--gc-sections  -rdynamic CMakeFiles/cmTC_96a7d.dir/CheckFunctionExists.c.o  -o cmTC_96a7d -lpthreads 
+/root/miniconda3/envs/lima/bin/../lib/gcc/x86_64-conda_cos6-linux-gnu/7.3.0/../../../../x86_64-conda_cos6-linux-gnu/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [cmTC_96a7d] Error 1
+gmake[1]: Leaving directory `/Lima-camera-dhyana/CMakeFiles/CMakeTmp'
+gmake: *** [cmTC_96a7d/fast] Error 2
+
+

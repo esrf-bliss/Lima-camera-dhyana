@@ -1,0 +1,42 @@
+file(REMOVE_RECURSE
+  "sip/siplimadhyanapart0.cpp"
+  "sip/siplimadhyanapart1.cpp"
+  "sip/siplimadhyanapart2.cpp"
+  "sip/siplimadhyanapart3.cpp"
+  "sip/siplimadhyanapart4.cpp"
+  "sip/siplimadhyanapart5.cpp"
+  "sip/siplimadhyanapart6.cpp"
+  "sip/siplimadhyanapart7.cpp"
+  "sip/siplimadhyanapart8.cpp"
+  "sip/siplimadhyanapart9.cpp"
+  "sip/siplimadhyanapart10.cpp"
+  "sip/siplimadhyanapart11.cpp"
+  "sip/siplimadhyanapart12.cpp"
+  "sip/siplimadhyanapart13.cpp"
+  "sip/siplimadhyanapart14.cpp"
+  "sip/siplimadhyanapart15.cpp"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart0.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart1.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart2.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart3.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart4.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart5.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart6.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart7.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart8.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart9.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart10.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart11.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart12.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart13.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart14.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/siplimadhyanapart15.cpp.o"
+  "CMakeFiles/python_module_limadhyana.dir/sip/sip_init_numpy.cpp.o"
+  "limadhyana.pdb"
+  "limadhyana.so"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/python_module_limadhyana.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

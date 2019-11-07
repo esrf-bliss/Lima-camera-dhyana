@@ -1,0 +1,7 @@
+/Lima-camera-dhyana/CMakeFiles/install/strip.dir
+/Lima-camera-dhyana/CMakeFiles/install/local.dir
+/Lima-camera-dhyana/CMakeFiles/edit_cache.dir
+/Lima-camera-dhyana/CMakeFiles/dhyana.dir
+/Lima-camera-dhyana/CMakeFiles/rebuild_cache.dir
+/Lima-camera-dhyana/CMakeFiles/list_install_components.dir
+/Lima-camera-dhyana/CMakeFiles/install.dir

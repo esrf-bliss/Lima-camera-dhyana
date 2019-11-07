@@ -1,0 +1,16 @@
+/root/miniconda3/envs/lima/lib/python3.7/site-packages/limadhyana.so
+/root/miniconda3/envs/lima/lib64/cmake/dhyana/dhyana-config.cmake
+/root/miniconda3/envs/lima/lib64/cmake/dhyana/dhyana-config-version.cmake
+/root/miniconda3/envs/lima/lib64/cmake/dhyana/dhyana-targets.cmake
+/root/miniconda3/envs/lima/lib64/cmake/dhyana/dhyana-targets-noconfig.cmake
+/root/miniconda3/envs/lima/lib64/liblimadhyana.so.LimaRoot-19.5.0
+/root/miniconda3/envs/lima/lib64/liblimadhyana.so.LimaRoot-19.5
+/root/miniconda3/envs/lima/lib64/liblimadhyana.so
+/root/miniconda3/envs/lima/include/DhyanaSyncCtrlObj.h
+/root/miniconda3/envs/lima/include/DhyanaCompatibility.h
+/root/miniconda3/envs/lima/include/DhyanaRoiCtrlObj.h
+/root/miniconda3/envs/lima/include/DhyanaInterface.h
+/root/miniconda3/envs/lima/include/DhyanaDetInfoCtrlObj.h
+/root/miniconda3/envs/lima/include/DhyanaBinCtrlObj.h
+/root/miniconda3/envs/lima/include/DhyanaTimer.h
+/root/miniconda3/envs/lima/include/DhyanaCamera.h

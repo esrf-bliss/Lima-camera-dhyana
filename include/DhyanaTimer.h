@@ -30,10 +30,10 @@
 
 #include <ostream>
 #include <map>
-#include <process.h>
-#include <windows.h>
+// #include <process.h>
+// #include <windows.h>
 #include <stdio.h>
-#include <Mmsystem.h>
+// #include <Mmsystem.h>
 #pragma comment(lib, "Winmm.lib" )
 
 #include "DhyanaCompatibility.h"
@@ -66,7 +66,7 @@ namespace lima
 			~CBaseTimer();
 
 			//------------------------------------------------------------
-			static void CALLBACK base_timer_proc(UINT uID, UINT uMsg, DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
+			static void CALLBACK base_timer_proc(UINT uID, UINT uMsg, uintptr_t dwUser, uintptr_t dw1, uintptr_t dw2)
 			{
 				//std::cout<<" ----> base_timer_proc <------- [BEGIN]"<<std::endl;
 				CBaseTimer* pThis = (CBaseTimer*)dwUser;

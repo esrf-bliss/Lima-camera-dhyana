@@ -30,15 +30,15 @@
 
 #include <ostream>
 #include <map>
-#include <process.h>
+#include <pthread.h>
+// #include <process.h>
 #include "DhyanaCompatibility.h"
 #include "lima/HwBufferMgr.h"
 #include "lima/HwInterface.h"
 #include "lima/Debug.h"
 #include "lima/Timer.h"
-#include "TUCamApi.h"
-#include "TUDefine.h"
-
+#include "../sdk/include/TUCamApi.h"
+#include "../sdk/include/TUDefine.h"
 
 using namespace std;
 
@@ -139,7 +139,9 @@ public:
 	TUCAM_INIT          m_itApi; // TUCAM handle Api
 	TUCAM_OPEN          m_opCam; // TUCAM handle camera
 	TUCAM_FRAME         m_frame; // TUCAM frame structure
-	HANDLE              m_hThdEvent; // TUCAM handle event   
+	pthread_cond_t      m_hThdEvent; // TUCAM handle event
+    private: pthread_mutex_t     m_hThdLock;
+    bool                m_hThdStatus;
 private:
     //read/copy frame
     bool readFrame(void *bptr, int& frame_nb);
