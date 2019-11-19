@@ -31,3 +31,9 @@
 *.out
 *.app
 /target/
+
+# .vscode
+.vscode/*
+
+# build
+build/*
