@@ -30,17 +30,12 @@
 
 #include <ostream>
 #include <map>
-// #include <process.h>
-// #include <windows.h>
 #include <stdio.h>
-// #include <Mmsystem.h>
 #pragma comment(lib, "Winmm.lib" )
 
 #include "DhyanaCompatibility.h"
 #include "lima/Debug.h"
 #include "DhyanaCamera.h"
-
-#include <errno.h>
 
 using namespace std;
 
@@ -87,13 +82,11 @@ namespace lima
 			virtual void on_timer() = 0;
 
 		protected:
-			// int  m_timer_id;
+			timer_t m_timer_id;
 			long m_period_ms;
-			// UINT m_resolution;
 			int  m_nb_triggers;
 			struct sigevent m_se;
     		struct itimerspec m_ts;
-			timer_t m_timer_id;
 		};
 
 		/******************************************************************
