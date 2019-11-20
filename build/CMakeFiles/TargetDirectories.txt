@@ -1,7 +1,0 @@
-/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles/install/strip.dir
-/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles/install/local.dir
-/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles/edit_cache.dir
-/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles/dhyana.dir
-/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles/rebuild_cache.dir
-/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles/list_install_components.dir
-/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles/install.dir
