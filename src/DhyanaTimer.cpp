@@ -39,7 +39,7 @@
 #include <signal.h>
 using namespace lima;
 using namespace lima::Dhyana;
-// using namespace std;
+using namespace std;
 
 
 //---------------------------
@@ -105,7 +105,6 @@ void CBaseTimer::stop()
 	timer_delete(m_timer_id);
 }
 
-// }}
 
 /////////////////////////////
 // USER MyTimer
@@ -136,9 +135,9 @@ void CSoftTriggerTimer::on_timer()
 {
 	DEB_MEMBER_FUNCT();
 	//Generate software trigger for each frame, except for the first image
-	// if((!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames) && (m_cam.m_trigger_mode == IntTrig))
+	//if((!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames) && (m_cam.m_trigger_mode == IntTrig))
 	{
-		// if(m_cam.getNbHwAcquiredFrames() > m_nb_triggers)
+		//if(m_cam.getNbHwAcquiredFrames() > m_nb_triggers)
 		{
 			m_nb_triggers++;
 			//DEB_TRACE() << "CSoftTriggerTimer::on_timer : DoSoftwareTrigger - "<<m_nb_triggers;
@@ -147,7 +146,7 @@ void CSoftTriggerTimer::on_timer()
 	}
 
 	//This Timer is oneshot, stop() it 
-	// stop();
+	//stop();
 }
 
 
