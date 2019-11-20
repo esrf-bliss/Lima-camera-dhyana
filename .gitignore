@@ -40,3 +40,15 @@ build
 
 # dhyana
 dhyana
+
+# dhyana
+.settings
+
+# project
+.project
+
+# Makefile
+Makefile
+
+# Cmake
+cmake
