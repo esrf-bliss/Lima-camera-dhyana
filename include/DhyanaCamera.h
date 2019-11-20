@@ -39,6 +39,7 @@
 #include "TUCamApi.h"
 #include "TUDefine.h"
 
+
 using namespace std;
 
 namespace lima
@@ -139,8 +140,6 @@ public:
 	TUCAM_OPEN          m_opCam; // TUCAM handle camera
 	TUCAM_FRAME         m_frame; // TUCAM frame structure
 	pthread_cond_t      m_hThdEvent; // TUCAM handle event
-    private: pthread_mutex_t     m_hThdLock;
-    bool                m_hThdStatus;
 private:
     //read/copy frame
     bool readFrame(void *bptr, int& frame_nb);
@@ -156,6 +155,8 @@ private:
             return false;
         }
     }
+    pthread_mutex_t     m_hThdLock;
+    bool                m_hThdStatus;
     //////////////////////////////
     // -- dhyana specific members
     //////////////////////////////
