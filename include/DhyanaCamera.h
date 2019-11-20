@@ -31,14 +31,13 @@
 #include <ostream>
 #include <map>
 #include <pthread.h>
-// #include <process.h>
 #include "DhyanaCompatibility.h"
 #include "lima/HwBufferMgr.h"
 #include "lima/HwInterface.h"
 #include "lima/Debug.h"
 #include "lima/Timer.h"
-#include "../sdk/include/TUCamApi.h"
-#include "../sdk/include/TUDefine.h"
+#include "TUCamApi.h"
+#include "TUDefine.h"
 
 using namespace std;
 

@@ -54,7 +54,7 @@ endif()
 add_library(dhyana SHARED IMPORTED)
 
 set_target_properties(dhyana PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include"
+  INTERFACE_INCLUDE_DIRECTORIES "/mxn/home/abdamj/code/lima-camera-dhyana/4PUBLIC;${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include"
   INTERFACE_LINK_LIBRARIES "limacore"
 )
 

@@ -34,19 +34,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /root/miniconda3/envs/lima/bin/cmake
+CMAKE_COMMAND = /mxn/home/abdamj/miniconda3/envs/lima/bin/cmake
 
 # The command to remove a file.
-RM = /root/miniconda3/envs/lima/bin/cmake -E remove -f
+RM = /mxn/home/abdamj/miniconda3/envs/lima/bin/cmake -E remove -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Lima-camera-dhyana
+CMAKE_SOURCE_DIR = /mxn/home/abdamj/code/lima-camera-dhyana
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Lima-camera-dhyana/build
+CMAKE_BINARY_DIR = /mxn/home/abdamj/code/lima-camera-dhyana/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/dhyana.dir/depend.make
@@ -59,81 +59,94 @@ include CMakeFiles/dhyana.dir/flags.make
 
 CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.o: CMakeFiles/dhyana.dir/flags.make
 CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.o: ../src/DhyanaCamera.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.o"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.o -c /Lima-camera-dhyana/src/DhyanaCamera.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.o"
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.o -c /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaCamera.cpp
 
 CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.i"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Lima-camera-dhyana/src/DhyanaCamera.cpp > CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.i
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaCamera.cpp > CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.i
 
 CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.s"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Lima-camera-dhyana/src/DhyanaCamera.cpp -o CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.s
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaCamera.cpp -o CMakeFiles/dhyana.dir/src/DhyanaCamera.cpp.s
 
 CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.o: CMakeFiles/dhyana.dir/flags.make
 CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.o: ../src/DhyanaInterface.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.o"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.o -c /Lima-camera-dhyana/src/DhyanaInterface.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.o"
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.o -c /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaInterface.cpp
 
 CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.i"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Lima-camera-dhyana/src/DhyanaInterface.cpp > CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.i
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaInterface.cpp > CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.i
 
 CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.s"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Lima-camera-dhyana/src/DhyanaInterface.cpp -o CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.s
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaInterface.cpp -o CMakeFiles/dhyana.dir/src/DhyanaInterface.cpp.s
 
 CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.o: CMakeFiles/dhyana.dir/flags.make
 CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.o: ../src/DhyanaDetInfoCtrlObj.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.o"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.o -c /Lima-camera-dhyana/src/DhyanaDetInfoCtrlObj.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.o"
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.o -c /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaDetInfoCtrlObj.cpp
 
 CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.i"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Lima-camera-dhyana/src/DhyanaDetInfoCtrlObj.cpp > CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.i
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaDetInfoCtrlObj.cpp > CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.i
 
 CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.s"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Lima-camera-dhyana/src/DhyanaDetInfoCtrlObj.cpp -o CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.s
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaDetInfoCtrlObj.cpp -o CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.s
 
 CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.o: CMakeFiles/dhyana.dir/flags.make
 CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.o: ../src/DhyanaSyncCtrlObj.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.o"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.o -c /Lima-camera-dhyana/src/DhyanaSyncCtrlObj.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.o"
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.o -c /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaSyncCtrlObj.cpp
 
 CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.i"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Lima-camera-dhyana/src/DhyanaSyncCtrlObj.cpp > CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.i
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaSyncCtrlObj.cpp > CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.i
 
 CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.s"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Lima-camera-dhyana/src/DhyanaSyncCtrlObj.cpp -o CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.s
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaSyncCtrlObj.cpp -o CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.s
 
 CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.o: CMakeFiles/dhyana.dir/flags.make
 CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.o: ../src/DhyanaRoiCtrlObj.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.o"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.o -c /Lima-camera-dhyana/src/DhyanaRoiCtrlObj.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.o"
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.o -c /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaRoiCtrlObj.cpp
 
 CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.i"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Lima-camera-dhyana/src/DhyanaRoiCtrlObj.cpp > CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.i
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaRoiCtrlObj.cpp > CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.i
 
 CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.s"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Lima-camera-dhyana/src/DhyanaRoiCtrlObj.cpp -o CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.s
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaRoiCtrlObj.cpp -o CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.s
 
 CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.o: CMakeFiles/dhyana.dir/flags.make
 CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.o: ../src/DhyanaBinCtrlObj.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.o"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.o -c /Lima-camera-dhyana/src/DhyanaBinCtrlObj.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.o"
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.o -c /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaBinCtrlObj.cpp
 
 CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.i"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Lima-camera-dhyana/src/DhyanaBinCtrlObj.cpp > CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.i
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaBinCtrlObj.cpp > CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.i
 
 CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.s"
-	/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Lima-camera-dhyana/src/DhyanaBinCtrlObj.cpp -o CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.s
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaBinCtrlObj.cpp -o CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.s
+
+CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.o: CMakeFiles/dhyana.dir/flags.make
+CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.o: ../src/DhyanaTimer.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.o"
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.o -c /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaTimer.cpp
+
+CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.i"
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaTimer.cpp > CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.i
+
+CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.s"
+	/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mxn/home/abdamj/code/lima-camera-dhyana/src/DhyanaTimer.cpp -o CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.s
 
 # Object files for target dhyana
 dhyana_OBJECTS = \
@@ -142,7 +155,8 @@ dhyana_OBJECTS = \
 "CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj.cpp.o" \
 "CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.o" \
 "CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.o" \
-"CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.o"
+"CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.o" \
+"CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.o"
 
 # External object files for target dhyana
 dhyana_EXTERNAL_OBJECTS =
@@ -153,32 +167,33 @@ liblimadhyana.so.LimaRoot-19.5.0: CMakeFiles/dhyana.dir/src/DhyanaDetInfoCtrlObj
 liblimadhyana.so.LimaRoot-19.5.0: CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.o
 liblimadhyana.so.LimaRoot-19.5.0: CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.o
 liblimadhyana.so.LimaRoot-19.5.0: CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.o
+liblimadhyana.so.LimaRoot-19.5.0: CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.o
 liblimadhyana.so.LimaRoot-19.5.0: CMakeFiles/dhyana.dir/build.make
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/liblimacore.so.1.9.1
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libprocesslib.so.1.7.1
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libgsl.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libgslcblas.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libz.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/liblz4.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libcbf.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libhdf5_cpp.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libhdf5.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libhdf5_hl_cpp.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libhdf5_hl.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libtiff.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/liblibconfig++.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libz.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/liblz4.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libcbf.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libhdf5_cpp.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libhdf5.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libhdf5_hl_cpp.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libhdf5_hl.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libtiff.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/liblibconfig++.so
-liblimadhyana.so.LimaRoot-19.5.0: /root/miniconda3/envs/lima/lib/libnuma.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/liblimacore.so.1.9.1
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libprocesslib.so.1.7.1
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libgsl.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libgslcblas.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libz.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/liblz4.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libcbf.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libhdf5_cpp.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libhdf5.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libhdf5_hl_cpp.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libhdf5_hl.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libtiff.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/liblibconfig++.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libz.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/liblz4.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libcbf.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libhdf5_cpp.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libhdf5.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libhdf5_hl_cpp.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libhdf5_hl.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libtiff.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/liblibconfig++.so
+liblimadhyana.so.LimaRoot-19.5.0: /mxn/home/abdamj/miniconda3/envs/lima/lib/libnuma.so
 liblimadhyana.so.LimaRoot-19.5.0: CMakeFiles/dhyana.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX shared library liblimadhyana.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX shared library liblimadhyana.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/dhyana.dir/link.txt --verbose=$(VERBOSE)
 	$(CMAKE_COMMAND) -E cmake_symlink_library liblimadhyana.so.LimaRoot-19.5.0 liblimadhyana.so.LimaRoot-19.5 liblimadhyana.so
 
@@ -198,6 +213,6 @@ CMakeFiles/dhyana.dir/clean:
 .PHONY : CMakeFiles/dhyana.dir/clean
 
 CMakeFiles/dhyana.dir/depend:
-	cd /Lima-camera-dhyana/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Lima-camera-dhyana /Lima-camera-dhyana /Lima-camera-dhyana/build /Lima-camera-dhyana/build /Lima-camera-dhyana/build/CMakeFiles/dhyana.dir/DependInfo.cmake --color=$(COLOR)
+	cd /mxn/home/abdamj/code/lima-camera-dhyana/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /mxn/home/abdamj/code/lima-camera-dhyana /mxn/home/abdamj/code/lima-camera-dhyana /mxn/home/abdamj/code/lima-camera-dhyana/build /mxn/home/abdamj/code/lima-camera-dhyana/build /mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles/dhyana.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/dhyana.dir/depend
 

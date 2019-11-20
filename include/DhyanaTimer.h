@@ -40,6 +40,8 @@
 #include "lima/Debug.h"
 #include "DhyanaCamera.h"
 
+#include <errno.h>
+
 using namespace std;
 
 namespace lima
@@ -66,10 +68,11 @@ namespace lima
 			~CBaseTimer();
 
 			//------------------------------------------------------------
-			static void CALLBACK base_timer_proc(UINT uID, UINT uMsg, uintptr_t dwUser, uintptr_t dw1, uintptr_t dw2)
+			static void  base_timer_proc(union sigval dwUser)
 			{
+				std::cout << "** CBaseTimer::base_timer_proc \n";
 				//std::cout<<" ----> base_timer_proc <------- [BEGIN]"<<std::endl;
-				CBaseTimer* pThis = (CBaseTimer*)dwUser;
+				CBaseTimer* pThis = (CBaseTimer*)dwUser.sival_ptr;
 				pThis->on_timer();
 				//std::cout<<" ----> base_timer_proc <------- [END]"<<std::endl;
 			}
@@ -84,10 +87,13 @@ namespace lima
 			virtual void on_timer() = 0;
 
 		protected:
-			int  m_timer_id;
+			// int  m_timer_id;
 			long m_period_ms;
-			UINT m_resolution;
+			// UINT m_resolution;
 			int  m_nb_triggers;
+			struct sigevent m_se;
+    		struct itimerspec m_ts;
+			timer_t m_timer_id;
 		};
 
 		/******************************************************************

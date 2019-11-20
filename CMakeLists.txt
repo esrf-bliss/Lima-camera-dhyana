@@ -1,27 +1,3 @@
-###########################################################################
-# This file is part of LImA, a Library for Image Acquisition
-#
-#  Copyright (C) : 2009-2019
-#  European Synchrotron Radiation Facility
-#  CS40220 38043 Grenoble Cedex 9
-#  FRANCE
-#
-#  Contact: lima@esrf.fr
-#
-#  This is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  This software is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, see <http://www.gnu.org/licenses/>.
-############################################################################
-
 cmake_minimum_required(VERSION 3.1)
 
 project(dhyana)
@@ -71,15 +47,10 @@ if (CAMERA_MASTER_PROJECT)
   endif()
 endif()
 
-# set(PYLON_VERSION "5" CACHE STRING "Pylon version 3 or 5")
-
-# if ("${PYLON_VERSION}" STREQUAL "3")
-#   find_package(Pylon3 REQUIRED)
-# elseif ("${PYLON_VERSION}" STREQUAL "5")
-#   find_package(Pylon5 REQUIRED)
-# endif()
+#find_package(LIBTUCAM REQUIRED)
 
 file(GLOB_RECURSE DHYANA_INCS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
+file(GLOB_RECURSE TUCAM_INCS "${CMAKE_CURRENT_SOURCE_DIR}/sdk/include/*.h")
 
 # Library definition
 add_library(dhyana SHARED
@@ -89,8 +60,9 @@ add_library(dhyana SHARED
   src/DhyanaSyncCtrlObj.cpp
   src/DhyanaRoiCtrlObj.cpp
   src/DhyanaBinCtrlObj.cpp
-  # src/DhyanaVideoCtrlObj.cpp
+  src/DhyanaTimer.cpp
   ${DHYANA_INCS}
+  ${TUCAM_INCS}
 )
 
 # Generate export macros
@@ -105,24 +77,11 @@ set_target_properties(dhyana PROPERTIES
 # Add dependencies
 target_include_directories(dhyana
     PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"           # For export header
-    PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+    PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/sdk/include>"
+    4PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
 target_link_libraries(dhyana PUBLIC limacore)
-
-# target_compile_definitions(dhyana PUBLIC ${PYLON_DEFINITIONS})
-# 
-# target_include_directories(dhyana PUBLIC ${PYLON_INCLUDE_DIRS})
-# 
-# target_link_libraries(basler PUBLIC ${PYLON_LIBRARIES})
-
-if(WIN32)
-  target_compile_definitions(dhyana
-    PRIVATE dhyana_EXPORTS
-    PUBLIC NOMINMAX)
-  set_target_properties(dhyana PROPERTIES PREFIX "lib" IMPORT_PREFIX "lib")
-endif()
 
 # Binding code for python
 if(LIMA_ENABLE_PYTHON)
@@ -155,14 +114,6 @@ install(
   FILES_MATCHING PATTERN "*.h"
 )
 
-# install(
-#   FILES
-#     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/project_version.h
-#     ${PROJECT_BINARY_DIR}/basler_export.h
-#   COMPONENT devel
-#   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-# )
-
 # if(LIMA_ENABLE_PYTHON)
 #   install(
 #     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python/
@@ -171,10 +122,4 @@ install(
 #   if (LIMA_ENABLE_PYTANGO_SERVER)
 #     add_subdirectory(tango)
 #   endif()
-# endif()
-# 
-# ## Tests
-# if(CAMERA_ENABLE_TESTS)
-#     enable_testing()
-#     #add_subdirectory(test)
 # endif()

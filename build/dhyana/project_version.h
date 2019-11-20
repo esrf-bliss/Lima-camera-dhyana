@@ -9,7 +9,7 @@
 #define DHYANA_VERSION_MINOR 5
 #define DHYANA_VERSION_PATCH 0
 /// package version as string, possibly with git commit: v1.2.3+4+g56789abc
-#define DHYANA_PACKAGE_VERSION "LimaRoot-19.5.0"
+#define DHYANA_PACKAGE_VERSION "L+3+g11a2bed"
 
 ///runtime versions, where the above values are linked into a lib and therefore reflect the version
 ///of the library itself (not the version of the header at compile time of the user code)

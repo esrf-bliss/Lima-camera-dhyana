@@ -1,8 +1,8 @@
-# Install script for directory: /Lima-camera-dhyana
+# Install script for directory: /mxn/home/abdamj/code/lima-camera-dhyana
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/root/miniconda3/envs/lima")
+  set(CMAKE_INSTALL_PREFIX "/mxn/home/abdamj/miniconda3/envs/lima")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -12,7 +12,7 @@ if(NOT DEFINED CMAKE_INSTALL_CONFIG_NAME)
     string(REGEX REPLACE "^[^A-Za-z0-9_]+" ""
            CMAKE_INSTALL_CONFIG_NAME "${BUILD_TYPE}")
   else()
-    set(CMAKE_INSTALL_CONFIG_NAME "")
+    set(CMAKE_INSTALL_CONFIG_NAME "Debug")
   endif()
   message(STATUS "Install configuration: \"${CMAKE_INSTALL_CONFIG_NAME}\"")
 endif()
@@ -37,41 +37,10 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(EXISTS "$ENV{DESTDIR}/root/miniconda3/envs/lima/lib/python3.7/site-packages/limadhyana.so" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}/root/miniconda3/envs/lima/lib/python3.7/site-packages/limadhyana.so")
-    file(RPATH_CHECK
-         FILE "$ENV{DESTDIR}/root/miniconda3/envs/lima/lib/python3.7/site-packages/limadhyana.so"
-         RPATH "")
-  endif()
-  list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/root/miniconda3/envs/lima/lib/python3.7/site-packages/limadhyana.so")
-  if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
-    message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
-  endif()
-  if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
-    message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
-  endif()
-file(INSTALL DESTINATION "/root/miniconda3/envs/lima/lib/python3.7/site-packages" TYPE SHARED_LIBRARY FILES "/Lima-camera-dhyana/build/limadhyana.so")
-  if(EXISTS "$ENV{DESTDIR}/root/miniconda3/envs/lima/lib/python3.7/site-packages/limadhyana.so" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}/root/miniconda3/envs/lima/lib/python3.7/site-packages/limadhyana.so")
-    file(RPATH_CHANGE
-         FILE "$ENV{DESTDIR}/root/miniconda3/envs/lima/lib/python3.7/site-packages/limadhyana.so"
-         OLD_RPATH "/root/miniconda3/envs/lima/lib:/Lima-camera-dhyana/build:"
-         NEW_RPATH "")
-    if(CMAKE_INSTALL_DO_STRIP)
-      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}/root/miniconda3/envs/lima/lib/python3.7/site-packages/limadhyana.so")
-    endif()
-  endif()
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-endif()
-
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xdevelx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib64/cmake/dhyana" TYPE FILE FILES
-    "/Lima-camera-dhyana/build/dhyana-config.cmake"
-    "/Lima-camera-dhyana/build/dhyana-config-version.cmake"
+    "/mxn/home/abdamj/code/lima-camera-dhyana/build/dhyana-config.cmake"
+    "/mxn/home/abdamj/code/lima-camera-dhyana/build/dhyana-config-version.cmake"
     )
 endif()
 
@@ -79,7 +48,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib64/cmake/dhyana/dhyana-targets.cmake")
     file(DIFFERENT EXPORT_FILE_CHANGED FILES
          "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib64/cmake/dhyana/dhyana-targets.cmake"
-         "/Lima-camera-dhyana/build/CMakeFiles/Export/lib64/cmake/dhyana/dhyana-targets.cmake")
+         "/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles/Export/lib64/cmake/dhyana/dhyana-targets.cmake")
     if(EXPORT_FILE_CHANGED)
       file(GLOB OLD_CONFIG_FILES "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib64/cmake/dhyana/dhyana-targets-*.cmake")
       if(OLD_CONFIG_FILES)
@@ -88,9 +57,9 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
       endif()
     endif()
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib64/cmake/dhyana" TYPE FILE FILES "/Lima-camera-dhyana/build/CMakeFiles/Export/lib64/cmake/dhyana/dhyana-targets.cmake")
-  if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^()$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib64/cmake/dhyana" TYPE FILE FILES "/Lima-camera-dhyana/build/CMakeFiles/Export/lib64/cmake/dhyana/dhyana-targets-noconfig.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib64/cmake/dhyana" TYPE FILE FILES "/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles/Export/lib64/cmake/dhyana/dhyana-targets.cmake")
+  if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib64/cmake/dhyana" TYPE FILE FILES "/mxn/home/abdamj/code/lima-camera-dhyana/build/CMakeFiles/Export/lib64/cmake/dhyana/dhyana-targets-debug.cmake")
   endif()
 endif()
 
@@ -107,8 +76,8 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
     endif()
   endforeach()
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib64" TYPE SHARED_LIBRARY FILES
-    "/Lima-camera-dhyana/build/liblimadhyana.so.LimaRoot-19.5.0"
-    "/Lima-camera-dhyana/build/liblimadhyana.so.LimaRoot-19.5"
+    "/mxn/home/abdamj/code/lima-camera-dhyana/build/liblimadhyana.so.LimaRoot-19.5.0"
+    "/mxn/home/abdamj/code/lima-camera-dhyana/build/liblimadhyana.so.LimaRoot-19.5"
     )
   foreach(file
       "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib64/liblimadhyana.so.LimaRoot-19.5.0"
@@ -118,7 +87,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
        NOT IS_SYMLINK "${file}")
       file(RPATH_CHANGE
            FILE "${file}"
-           OLD_RPATH "/root/miniconda3/envs/lima/lib:"
+           OLD_RPATH "/mxn/home/abdamj/miniconda3/envs/lima/lib:"
            NEW_RPATH "")
       if(CMAKE_INSTALL_DO_STRIP)
         execute_process(COMMAND "/usr/bin/strip" "${file}")
@@ -134,12 +103,12 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib64/liblimadhyana.so"
          RPATH "")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib64" TYPE SHARED_LIBRARY FILES "/Lima-camera-dhyana/build/liblimadhyana.so")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib64" TYPE SHARED_LIBRARY FILES "/mxn/home/abdamj/code/lima-camera-dhyana/build/liblimadhyana.so")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib64/liblimadhyana.so" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib64/liblimadhyana.so")
     file(RPATH_CHANGE
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib64/liblimadhyana.so"
-         OLD_RPATH "/root/miniconda3/envs/lima/lib:"
+         OLD_RPATH "/mxn/home/abdamj/miniconda3/envs/lima/lib:"
          NEW_RPATH "")
     if(CMAKE_INSTALL_DO_STRIP)
       execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib64/liblimadhyana.so")
@@ -148,7 +117,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xdevelx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/Lima-camera-dhyana/include/" FILES_MATCHING REGEX "/[^/]*\\.h$")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/mxn/home/abdamj/code/lima-camera-dhyana/include/" FILES_MATCHING REGEX "/[^/]*\\.h$")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -159,5 +128,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Lima-camera-dhyana/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/mxn/home/abdamj/code/lima-camera-dhyana/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

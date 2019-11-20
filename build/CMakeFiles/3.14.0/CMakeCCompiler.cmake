@@ -1,4 +1,4 @@
-set(CMAKE_C_COMPILER "/root/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-cc")
+set(CMAKE_C_COMPILER "/mxn/home/abdamj/miniconda3/envs/lima/bin/x86_64-conda_cos6-linux-gnu-cc")
 set(CMAKE_C_COMPILER_ARG1 "")
 set(CMAKE_C_COMPILER_ID "GNU")
 set(CMAKE_C_COMPILER_VERSION "7.3.0")
@@ -69,7 +69,7 @@ endif()
 
 
 
-set(CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES "/root/miniconda3/envs/lima/bin/../lib/gcc/x86_64-conda_cos6-linux-gnu/7.3.0/include;/root/miniconda3/envs/lima/bin/../lib/gcc/x86_64-conda_cos6-linux-gnu/7.3.0/include-fixed;/root/miniconda3/envs/lima/bin/../lib/gcc/x86_64-conda_cos6-linux-gnu/7.3.0/../../../../x86_64-conda_cos6-linux-gnu/include;/root/miniconda3/envs/lima/bin/../x86_64-conda_cos6-linux-gnu/sysroot/usr/include")
+set(CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES "/mxn/home/abdamj/miniconda3/envs/lima/bin/../lib/gcc/x86_64-conda_cos6-linux-gnu/7.3.0/include;/mxn/home/abdamj/miniconda3/envs/lima/bin/../lib/gcc/x86_64-conda_cos6-linux-gnu/7.3.0/include-fixed;/mxn/home/abdamj/miniconda3/envs/lima/bin/../lib/gcc/x86_64-conda_cos6-linux-gnu/7.3.0/../../../../x86_64-conda_cos6-linux-gnu/include;/mxn/home/abdamj/miniconda3/envs/lima/bin/../x86_64-conda_cos6-linux-gnu/sysroot/usr/include")
 set(CMAKE_C_IMPLICIT_LINK_LIBRARIES "gcc;gcc_s;c;gcc;gcc_s")
-set(CMAKE_C_IMPLICIT_LINK_DIRECTORIES "/root/miniconda3/envs/lima/lib/gcc/x86_64-conda_cos6-linux-gnu/7.3.0;/root/miniconda3/envs/lima/lib/gcc;/root/miniconda3/envs/lima/x86_64-conda_cos6-linux-gnu/lib;/root/miniconda3/envs/lima/x86_64-conda_cos6-linux-gnu/sysroot/lib;/root/miniconda3/envs/lima/x86_64-conda_cos6-linux-gnu/sysroot/usr/lib")
+set(CMAKE_C_IMPLICIT_LINK_DIRECTORIES "/mxn/home/abdamj/miniconda3/envs/lima/lib/gcc/x86_64-conda_cos6-linux-gnu/7.3.0;/mxn/home/abdamj/miniconda3/envs/lima/lib/gcc;/mxn/home/abdamj/miniconda3/envs/lima/x86_64-conda_cos6-linux-gnu/lib;/mxn/home/abdamj/miniconda3/envs/lima/x86_64-conda_cos6-linux-gnu/sysroot/lib;/mxn/home/abdamj/miniconda3/envs/lima/x86_64-conda_cos6-linux-gnu/sysroot/usr/lib")
 set(CMAKE_C_IMPLICIT_LINK_FRAMEWORK_DIRECTORIES "")

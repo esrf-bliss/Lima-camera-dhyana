@@ -1,0 +1,30 @@
+<?TUXML version="1.0" encoding="UTF-8"?>
+<Cam_Dhyana95 Using="DftParameter">
+    <ParameterSets Name="DftParameter">
+        <Resolution>0</Resolution>
+        <PixelClock>0</PixelClock>
+        <BitOfDepth>16</BitOfDepth>
+        <GlobalGain>0</GlobalGain>
+        <Brightness>78</Brightness>
+        <ATExposure>0</ATExposure>
+        <FMExposure>0</FMExposure>
+        <LNExposure>1</LNExposure>
+        <BlackLevel>70</BlackLevel>
+        <FlatFieldCorrection>0</FlatFieldCorrection>
+        <DenoiseValue>8</DenoiseValue>
+        <DenoisePermission>0</DenoisePermission>
+        <Temperature>40</Temperature>
+        <FanMode>2</FanMode>
+        <HDR_K>800</HDR_K>
+        <Enhance>0</Enhance>
+        <MultipleCameras>1</MultipleCameras>
+        <Gamma>100</Gamma>
+        <Contrast>128</Contrast>
+        <LeftLevels>0</LeftLevels>
+        <RightLevels>65535</RightLevels>
+        <HistogramStatistic>0</HistogramStatistic>
+        <Horizontal>1</Horizontal>
+        <Vertical>0</Vertical>
+        <VerticalCorrection>0</VerticalCorrection>
+    </ParameterSets>
+</Cam_Dhyana95>

@@ -5,6 +5,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/dhyana.dir/src/DhyanaSyncCtrlObj.cpp.o"
   "CMakeFiles/dhyana.dir/src/DhyanaRoiCtrlObj.cpp.o"
   "CMakeFiles/dhyana.dir/src/DhyanaBinCtrlObj.cpp.o"
+  "CMakeFiles/dhyana.dir/src/DhyanaTimer.cpp.o"
   "liblimadhyana.pdb"
   "liblimadhyana.so.LimaRoot-19.5.0"
   "liblimadhyana.so"
