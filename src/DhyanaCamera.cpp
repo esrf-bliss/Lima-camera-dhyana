@@ -50,7 +50,7 @@ m_acq_frame_nb(0),
 m_temperature_target(0),
 m_timer_period_ms(timer_period_ms)
 {
-	
+
 	DEB_CONSTRUCTOR();	
 	//Init TUCAM	
 	init();		
@@ -278,7 +278,7 @@ void Camera::stopAcq()
 	
 	Timestamp t1 = Timestamp::now();
 	double delta_time = t1 - t0;
-	DEB_TRACE() << "stopAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";			
+	DEB_TRACE() << "stopAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";		
 }
 
 //-----------------------------------------------------
@@ -375,8 +375,6 @@ void Camera::AcqThread::threadFunction()
 			if(m_cam.m_acq_frame_nb == 0)//display TRACE only once ...
 			{				
 				DEB_TRACE() << "TUCAM_Buf_WaitForFrame ...";
-		
-		
 			}
 			
 			if(TUCAMRET_SUCCESS == TUCAM_Buf_WaitForFrame(m_cam.m_opCam.hIdxTUCam, &m_cam.m_frame))
@@ -448,11 +446,11 @@ void Camera::AcqThread::threadFunction()
 
 		//now detector is ready
 		m_cam.setStatus(Camera::Ready, false);
-		DEB_TRACE() << "AcqThread is no more running";
+		DEB_TRACE() << "AcqThread is no more running";		
 		
 		Timestamp t1_capture = Timestamp::now();
 		double delta_time_capture = t1_capture - t0_capture;
-		DEB_TRACE() << "Capture all frames elapsed time = " << (int) (delta_time_capture * 1000) << " (ms)";	
+		DEB_TRACE() << "Capture all frames elapsed time = " << (int) (delta_time_capture * 1000) << " (ms)";			
 
 		aLock.lock();
 		m_cam.m_thread_running = false;
