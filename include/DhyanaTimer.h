@@ -65,7 +65,6 @@ namespace lima
 			//------------------------------------------------------------
 			static void  base_timer_proc(union sigval dwUser)
 			{
-				std::cout << "** CBaseTimer::base_timer_proc \n";
 				//std::cout<<" ----> base_timer_proc <------- [BEGIN]"<<std::endl;
 				CBaseTimer* pThis = (CBaseTimer*)dwUser.sival_ptr;
 				pThis->on_timer();
