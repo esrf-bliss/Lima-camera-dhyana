@@ -86,6 +86,7 @@ namespace lima
 			int  m_nb_triggers;
 			struct sigevent m_se;
     		struct itimerspec m_ts;
+			struct itimerspec m_ts_reset;
 		};
 
 		/******************************************************************
