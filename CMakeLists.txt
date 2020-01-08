@@ -78,10 +78,11 @@ set_target_properties(dhyana PROPERTIES
 target_include_directories(dhyana
     PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/sdk/include>"
-    4PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+    PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
 target_link_libraries(dhyana PUBLIC limacore)
+target_link_libraries(dhyana PUBLIC TUCam)
 
 # Binding code for python
 if(LIMA_ENABLE_PYTHON)
@@ -114,12 +115,12 @@ install(
   FILES_MATCHING PATTERN "*.h"
 )
 
-# if(LIMA_ENABLE_PYTHON)
-#   install(
-#     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python/
-#     DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Basler"
-#     )
-#   if (LIMA_ENABLE_PYTANGO_SERVER)
-#     add_subdirectory(tango)
-#   endif()
-# endif()
+if(LIMA_ENABLE_PYTHON)
+  install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python/
+    DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Dhyana"
+    )
+  if (LIMA_ENABLE_PYTANGO_SERVER)
+    add_subdirectory(tango)
+  endif()
+endif()
