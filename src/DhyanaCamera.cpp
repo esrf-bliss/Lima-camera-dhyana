@@ -60,7 +60,9 @@ m_timer_period_ms(timer_period_ms)
 	DEB_TRACE() <<"Create the Internal Trigger Timer";
 	m_internal_trigger_timer = new CSoftTriggerTimer(m_timer_period_ms, *this);
 	m_acq_thread->start();
-	
+	m_hThdLock = PTHREAD_MUTEX_INITIALIZER;
+	m_hThdEvent = PTHREAD_COND_INITIALIZER;
+	m_signalled = false;
 }
 
 //-----------------------------------------------------
@@ -248,9 +250,12 @@ void Camera::stopAcq()
 
 
 		TUCAM_Buf_AbortWait(m_opCam.hIdxTUCam);
-		// pthread_mutex_lock(&m_hThdLock);
-		pthread_cond_wait(&m_hThdEvent, &m_hThdLock);
-		// pthread_mutex_unlock(&m_hThdLock);
+		pthread_mutex_lock(&m_hThdLock);
+		while (!m_signalled) {
+			pthread_cond_wait(&m_hThdEvent, &m_hThdLock);
+		}
+		m_signalled = false;
+		pthread_mutex_unlock(&m_hThdLock);
 		pthread_cond_destroy(&m_hThdEvent);
 		m_hThdStatus = false;
 		// Stop capture   
@@ -432,6 +437,7 @@ void Camera::AcqThread::threadFunction()
 		//
 		////DEB_TRACE() << "TUCAM SetEvent";
 		pthread_mutex_lock(&m_cam.m_hThdLock);
+		m_cam.m_signalled = true;
 		pthread_cond_signal(&m_cam.m_hThdEvent);
 		pthread_mutex_unlock(&m_cam.m_hThdLock);
 		//@END

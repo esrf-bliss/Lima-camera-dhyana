@@ -140,6 +140,7 @@ public:
 	TUCAM_OPEN          m_opCam; // TUCAM handle camera
 	TUCAM_FRAME         m_frame; // TUCAM frame structure
 	pthread_cond_t      m_hThdEvent; // TUCAM handle event
+    bool                m_signalled;
 private:
     //read/copy frame
     bool readFrame(void *bptr, int& frame_nb);
