@@ -58,8 +58,8 @@ m_roi(cam)
 Interface::~Interface()
 {
 	DEB_DESTRUCTOR();
-	// delete &m_det_info;
-	// delete &m_sync;
+	delete &m_det_info;
+	delete &m_sync;
 }
 
 //-----------------------------------------------------
