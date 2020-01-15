@@ -24,7 +24,6 @@
 #include <iostream>
 #include <string>
 #include <math.h>
-//#include <chrono>
 #include <climits>
 #include <iomanip>
 #include <signal.h>
@@ -61,7 +60,9 @@ m_timer_period_ms(timer_period_ms)
 	DEB_TRACE() <<"Create the Internal Trigger Timer";
 	m_internal_trigger_timer = new CSoftTriggerTimer(m_timer_period_ms, *this);
 	m_acq_thread->start();
-	
+	m_hThdLock = PTHREAD_MUTEX_INITIALIZER;
+	m_hThdEvent = PTHREAD_COND_INITIALIZER;
+	m_signalled = false;
 }
 
 //-----------------------------------------------------
@@ -122,7 +123,7 @@ void Camera::init()
 	}
 	
 	//initialize TUCAM Event used when Waiting for Frame
-	m_hThdEvent = NULL;
+	m_hThdStatus = false;
 }
 
 //-----------------------------------------------------
@@ -150,7 +151,7 @@ void Camera::prepareAcq()
 	DEB_TRACE() << "prepareAcq ...";
 	DEB_TRACE() << "Ensure that Acquisition is Started";
 	setStatus(Camera::Exposure, false);
-	if(NULL == m_hThdEvent)
+	if(false == m_hThdStatus)
 	{
 		m_frame.pBuffer = NULL;
 		m_frame.ucFormatGet = TUFRM_FMT_RAW;
@@ -178,7 +179,8 @@ void Camera::prepareAcq()
 		}
 		
 		////DEB_TRACE() << "TUCAM CreateEvent";
-		m_hThdEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+		pthread_cond_init(&m_hThdEvent, NULL);
+		m_hThdStatus = true;
 	}
 	
 	//@BEGIN : trigger the acquisition
@@ -242,13 +244,20 @@ void Camera::stopAcq()
 
 	//@BEGIN : Ensure that Acquisition is Stopped before return ...			
 	Timestamp t0 = Timestamp::now();
-	if(NULL != m_hThdEvent)
+	if(false != m_hThdStatus)
 	{
 		DEB_TRACE() << "TUCAM_Buf_AbortWait";
+
+
 		TUCAM_Buf_AbortWait(m_opCam.hIdxTUCam);
-		WaitForSingleObject(m_hThdEvent, INFINITE);
-		CloseHandle(m_hThdEvent);
-		m_hThdEvent = NULL;
+		pthread_mutex_lock(&m_hThdLock);
+		while (!m_signalled) {
+			pthread_cond_wait(&m_hThdEvent, &m_hThdLock);
+		}
+		m_signalled = false;
+		pthread_mutex_unlock(&m_hThdLock);
+		pthread_cond_destroy(&m_hThdEvent);
+		m_hThdStatus = false;
 		// Stop capture   
 		DEB_TRACE() << "TUCAM_Cap_Stop";
 		TUCAM_Cap_Stop(m_opCam.hIdxTUCam);
@@ -427,7 +436,10 @@ void Camera::AcqThread::threadFunction()
 
 		//
 		////DEB_TRACE() << "TUCAM SetEvent";
-		SetEvent(m_cam.m_hThdEvent);
+		pthread_mutex_lock(&m_cam.m_hThdLock);
+		m_cam.m_signalled = true;
+		pthread_cond_signal(&m_cam.m_hThdEvent);
+		pthread_mutex_unlock(&m_cam.m_hThdLock);
 		//@END
 		
 		//stopAcq only if this is not already done		
@@ -444,8 +456,8 @@ void Camera::AcqThread::threadFunction()
 		
 		Timestamp t1_capture = Timestamp::now();
 		double delta_time_capture = t1_capture - t0_capture;
-		DEB_TRACE() << "Capture all frames elapsed time = " << (int) (delta_time_capture * 1000) << " (ms)";				
-		
+		DEB_TRACE() << "Capture all frames elapsed time = " << (int) (delta_time_capture * 1000) << " (ms)";			
+
 		aLock.lock();
 		m_cam.m_thread_running = false;
 		m_cam.m_wait_flag = true;

@@ -31,3 +31,21 @@
 *.out
 *.app
 /target/
+
+# .vscode
+.vscode
+
+# build
+build
+
+# dhyana
+dhyana
+
+# dhyana
+.settings
+
+# project
+.project
+
+# Makefile
+Makefile

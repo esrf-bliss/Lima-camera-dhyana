@@ -30,7 +30,7 @@
 
 #include <ostream>
 #include <map>
-#include <process.h>
+#include <pthread.h>
 #include "DhyanaCompatibility.h"
 #include "lima/HwBufferMgr.h"
 #include "lima/HwInterface.h"
@@ -139,7 +139,8 @@ public:
 	TUCAM_INIT          m_itApi; // TUCAM handle Api
 	TUCAM_OPEN          m_opCam; // TUCAM handle camera
 	TUCAM_FRAME         m_frame; // TUCAM frame structure
-	HANDLE              m_hThdEvent; // TUCAM handle event   
+	pthread_cond_t      m_hThdEvent; // TUCAM handle event
+    bool                m_signalled;
 private:
     //read/copy frame
     bool readFrame(void *bptr, int& frame_nb);
@@ -155,6 +156,8 @@ private:
             return false;
         }
     }
+    pthread_mutex_t     m_hThdLock;
+    bool                m_hThdStatus;
     //////////////////////////////
     // -- dhyana specific members
     //////////////////////////////

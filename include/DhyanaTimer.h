@@ -30,10 +30,7 @@
 
 #include <ostream>
 #include <map>
-#include <process.h>
-#include <windows.h>
 #include <stdio.h>
-#include <Mmsystem.h>
 #pragma comment(lib, "Winmm.lib" )
 
 #include "DhyanaCompatibility.h"
@@ -66,10 +63,10 @@ namespace lima
 			~CBaseTimer();
 
 			//------------------------------------------------------------
-			static void CALLBACK base_timer_proc(UINT uID, UINT uMsg, DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
+			static void  base_timer_proc(union sigval dwUser)
 			{
 				//std::cout<<" ----> base_timer_proc <------- [BEGIN]"<<std::endl;
-				CBaseTimer* pThis = (CBaseTimer*)dwUser;
+				CBaseTimer* pThis = (CBaseTimer*)dwUser.sival_ptr;
 				pThis->on_timer();
 				//std::cout<<" ----> base_timer_proc <------- [END]"<<std::endl;
 			}
@@ -84,10 +81,12 @@ namespace lima
 			virtual void on_timer() = 0;
 
 		protected:
-			int  m_timer_id;
+			timer_t m_timer_id;
 			long m_period_ms;
-			UINT m_resolution;
 			int  m_nb_triggers;
+			struct sigevent m_se;
+    		struct itimerspec m_ts;
+			struct itimerspec m_ts_reset;
 		};
 
 		/******************************************************************
