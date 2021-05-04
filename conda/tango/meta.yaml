@@ -1,0 +1,33 @@
+# Strip the 'v' from the version tag
+{% if GIT_DESCRIBE_TAG is defined %}
+{%   set version = GIT_DESCRIBE_TAG[1:] %}
+{% else %}
+{%   set version = "0.0.0" %}
+{% endif %}
+
+package:
+  name: lima-camera-dhyana-tango
+  version: {{ version }}
+
+source:
+  path: ../..
+
+build:
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  noarch: python
+
+requirements:
+  build:
+    - cmake
+    - make
+    - git
+    - lima-core
+  run:
+    - lima-tango-server
+    - lima-camera-dhyana
+
+about:
+  home: https://github.com/esrf-bliss/Lima
+  license: GPL
+  license_file: COPYING
+  summary: a library for the unified control of 2D detectors

@@ -6,6 +6,12 @@ project(dhyana)
 include(GNUInstallDirs)
 include(GenerateExportHeader)
 
+#LIBRARIES
+find_library(SDK_LIBRARIES
+  NAMES TUCam
+  )
+message("${SDK_LIBRARIES}")
+
 # If conda build, always set lib dir to 'lib'
 if($ENV{CONDA_BUILD})
   set(CMAKE_INSTALL_LIBDIR "lib")
@@ -82,7 +88,7 @@ target_include_directories(dhyana
 )
 
 target_link_libraries(dhyana PUBLIC limacore)
-target_link_libraries(dhyana PUBLIC TUCam)
+target_link_libraries(dhyana PUBLIC ${SDK_LIBRARIES})
 
 # Binding code for python
 if(LIMA_ENABLE_PYTHON)
