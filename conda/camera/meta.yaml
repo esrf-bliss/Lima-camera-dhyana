@@ -1,0 +1,43 @@
+# Strip the 'v' from the version tag
+{% if GIT_DESCRIBE_TAG is defined %}
+{%   set version = GIT_DESCRIBE_TAG[1:] %}
+{% else %}
+{%   set version = "0.0.0" %}
+{% endif %}
+
+package:
+  name: lima-camera-dhyana
+  version: {{ version }}
+
+source:
+  path: ../..
+
+build:
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+
+requirements:
+  host:
+    - python {{ python }}
+    - sip 4.19.8              # For compatibility with pyqt 5.9.2
+    - lima-core >=1.9.6
+    - tucam-sdk
+  build:
+    - git
+    - cmake
+    - make
+    - {{ compiler('cxx') }}
+  run:
+    - python {{ python }}
+    - sip >=4.19.4, <=4.19.8  # For compatibility with pyqt 5.9.2
+    - {{ pin_compatible('lima-core', max_pin='x.x') }}
+    - tucam-sdk
+
+#test:
+#  imports:
+#    - Lima.Dhyana
+
+about:
+  home: https://github.com/esrf-bliss/Lima
+  license: GPL
+  license_file: COPYING
+  summary: a library for the unified control of 2D detectors

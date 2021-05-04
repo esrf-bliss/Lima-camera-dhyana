@@ -71,7 +71,7 @@ namespace Dhyana
     void getFanSpeed(unsigned& speed /Out/);
     void setGlobalGain(unsigned gain);
     void getGlobalGain(unsigned& gain /Out/);
-    void getTucamVersion(std::string& version);
+    void getTucamVersion(std::string& version /Out/);
     void getFirmwareVersion(std::string& version /Out/);
     bool isAcqRunning() const;
   };
