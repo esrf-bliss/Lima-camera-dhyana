@@ -244,6 +244,8 @@ void Camera::stopAcq()
 	AutoMutex aLock(m_cond.mutex());
 	DEB_TRACE() << "stopAcq ...";
 	// Don't do anything if acquisition is idle.
+	Timestamp t0 = Timestamp::now();
+	Timestamp t1;
 	if(m_thread_running == true)
 	{
 		m_wait_flag = true;
@@ -251,21 +253,32 @@ void Camera::stopAcq()
    
 		//@BEGIN : Ensure that Acquisition is Stopped before return ...			
 		DEB_TRACE() << "TUCAM_Buf_AbortWait";
-
-
+		
 		TUCAM_Buf_AbortWait(m_opCam.hIdxTUCam);
+		t1 = Timestamp::now();
+		double delta_time = t1 - t0;
+		DEB_TRACE() << "AbortWait = " << (int) (delta_time * 1000) << " (ms)";		
+		t0 = t1;
 		pthread_mutex_lock(&m_hThdLock);
 		while (!m_signalled) {
-			pthread_cond_wait(&m_hThdEvent, &m_hThdLock);
+		  pthread_cond_wait(&m_hThdEvent, &m_hThdLock);
 		}
 		m_signalled = false;
 		pthread_mutex_unlock(&m_hThdLock);
 		pthread_cond_destroy(&m_hThdEvent);
-		m_hThdStatus = false;
+		t1 = Timestamp::now();
+		delta_time = t1 - t0;
+		DEB_TRACE() << "bordel mutex = " << (int) (delta_time * 1000) << " (ms)";		
+		t0 = t1;
+
 		// Stop capture   
 		DEB_TRACE() << "TUCAM_Cap_Stop";
 		TUCAM_Cap_Stop(m_opCam.hIdxTUCam);
-		// Release alloc buffer after stop capture
+		t1 = Timestamp::now();
+		delta_time = t1 - t0;
+		DEB_TRACE() << "Cap_Stop = " << (int) (delta_time * 1000) << " (ms)";		
+		t0 = t1;
+		//Release alloc buffer after stop capture
 		DEB_TRACE() << "TUCAM_Buf_Release";
 		TUCAM_Buf_Release(m_opCam.hIdxTUCam);
 		m_prepared = false;
@@ -288,9 +301,9 @@ void Camera::stopAcq()
 	setStatus(Camera::Ready, false);
 	//@END	
 	
-	Timestamp t1 = Timestamp::now();
+	t1 = Timestamp::now();
 	double delta_time = t1 - t0;
-	DEB_TRACE() << "stopAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";		
+	DEB_TRACE() << "elapsed time = " << (int) (delta_time * 1000) << " (ms)";		
 }
 
 //-----------------------------------------------------
@@ -331,9 +344,9 @@ bool Camera::readFrame(void *bptr, int& frame_nb)
 	frame_nb = m_frame.uiIndex;
 	//@END	
 
-//	Timestamp t1 = Timestamp::now();
-//	double delta_time = t1 - t0;
-//	DEB_TRACE() << "readFrame : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
+	Timestamp t1 = Timestamp::now();
+	double delta_time = t1 - t0;
+	DEB_TRACE() << "readFrame : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
 	return false;
 }
 
@@ -391,23 +404,6 @@ void Camera::AcqThread::threadFunction()
 			
 			if(TUCAMRET_SUCCESS == TUCAM_Buf_WaitForFrame(m_cam.m_opCam.hIdxTUCam, &m_cam.m_frame))
 			{
-				//The based information
-				//DEB_TRACE() << "m_cam.m_frame.szSignature = "	<< m_cam.m_frame.szSignature<<std::endl;		// [out]Copyright+Version: TU+1.0 ['T', 'U', '1', '\0']		
-				//DEB_TRACE() << "m_cam.m_frame.usHeader = "	<< m_cam.m_frame.usHeader<<std::endl;			// [out] The frame header size
-				//DEB_TRACE() << "m_cam.m_frame.usOffset = "	<< m_cam.m_frame.usOffset<<std::endl;			// [out] The frame data offset
-				//DEB_TRACE() << "m_cam.m_frame.usWidth = "		<< m_cam.m_frame.usWidth;						// [out] The frame width
-				//DEB_TRACE() << "m_cam.m_frame.usHeight = "	<< m_cam.m_frame.usHeight;						// [out] The frame height
-				//DEB_TRACE() << "m_cam.m_frame.uiWidthStep = "	<< m_cam.m_frame.uiWidthStep<<std::endl;		// [out] The frame width step
-				//DEB_TRACE() << "m_cam.m_frame.ucDepth = "		<< m_cam.m_frame.ucDepth<<std::endl;			// [out] The frame data depth 
-				//DEB_TRACE() << "m_cam.m_frame.ucFormat = "	<< m_cam.m_frame.ucFormat<<std::endl;			// [out] The frame data format                  
-				//DEB_TRACE() << "m_cam.m_frame.ucChannels = "	<< m_cam.m_frame.ucChannels<<std::endl;			// [out] The frame data channels
-				//DEB_TRACE() << "m_cam.m_frame.ucElemBytes = "	<< m_cam.m_frame.ucElemBytes<<std::endl;		// [out] The frame data bytes per element
-				//DEB_TRACE() << "m_cam.m_frame.ucFormatGet = "	<< m_cam.m_frame.ucFormatGet<<std::endl;		// [in]  Which frame data format do you want    see TUFRM_FORMATS
-				//DEB_TRACE() << "m_cam.m_frame.uiIndex = "		<< m_cam.m_frame.uiIndex;						// [in/out] The frame index number
-				//DEB_TRACE() << "m_cam.m_frame.uiImgSize = "	<< m_cam.m_frame.uiImgSize;						// [out] The frame size
-				//DEB_TRACE() << "m_cam.m_frame.uiRsdSize = "	<< m_cam.m_frame.uiRsdSize;						// [in]  The frame reserved size    (how many frames do you want)
-				//DEB_TRACE() << "m_cam.m_frame.uiHstSize = "	<< m_cam.m_frame.uiHstSize<<std::endl;			// [out] The frame histogram size	
-
 				// Grabbing was successful, process image
 				m_cam.setStatus(Camera::Readout, false);
 
@@ -1131,4 +1127,4 @@ void Camera::getFirmwareVersion(std::string& version)
 
 //-----------------------------------------------------
 //
-//-----------------------------------------------------  
+//-----------------------------------------------------

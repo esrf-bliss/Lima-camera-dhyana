@@ -182,8 +182,8 @@ private:
     bool                m_prepared;
     // Buffer control object
     SoftBufferCtrlObj   m_bufferCtrlObj;
-	CSoftTriggerTimer*	m_internal_trigger_timer;
-	unsigned short 		m_timer_period_ms;
+    CSoftTriggerTimer*	m_internal_trigger_timer;
+    unsigned short 		m_timer_period_ms;
 
 } ;
 
