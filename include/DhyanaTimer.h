@@ -83,9 +83,8 @@ namespace lima
 		protected:
 			timer_t m_timer_id;
 			long m_period_ms;
-			int  m_nb_triggers;
 			struct sigevent m_se;
-    		struct itimerspec m_ts;
+			struct itimerspec m_ts;
 			struct itimerspec m_ts_reset;
 		};
 
@@ -105,10 +104,14 @@ namespace lima
 			~CSoftTriggerTimer();
 
 			//------------------------------------------------------------
+			void start();
+			void stop();
 			void on_timer();
 
-		public:
+		private:
 			Camera& m_cam;
+			int  m_nb_frames;
+			int  m_nb_triggers;
 		};
 
 	} // namespace Dhyana
