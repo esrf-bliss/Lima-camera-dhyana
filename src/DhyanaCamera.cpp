@@ -48,7 +48,8 @@ m_trigger_mode(IntTrig),
 m_status(Ready),
 m_acq_frame_nb(0),
 m_temperature_target(0),
-m_timer_period_ms(timer_period_ms)
+m_timer_period_ms(timer_period_ms),
+m_prepared(false)
 {
 
 	DEB_CONSTRUCTOR();	
@@ -121,9 +122,6 @@ void Camera::init()
 	{
 		THROW_HW_ERROR(Error) << "Unable to open the camera !";
 	}
-	
-	//initialize TUCAM Event used when Waiting for Frame
-	m_hThdStatus = false;
 }
 
 //-----------------------------------------------------
@@ -143,70 +141,24 @@ void Camera::reset()
 //-----------------------------------------------------
 void Camera::prepareAcq()
 {
-	DEB_MEMBER_FUNCT();
-	AutoMutex lock(m_cond.mutex());
+        DEB_MEMBER_FUNCT();
 	Timestamp t0 = Timestamp::now();
+	if (!m_prepared)
+	  {
+	       m_frame.pBuffer = NULL;
+	       m_frame.ucFormatGet = TUFRM_FMT_RAW;
+	       m_frame.uiRsdSize = 1;// how many frames do you want
+	       
+	       // Alloc buffer after set resolution or set ROI attribute
+	       DEB_TRACE() << "TUCAM_Buf_Alloc";
+	       TUCAM_Buf_Alloc(m_opCam.hIdxTUCam, &m_frame);
+	       m_prepared = true;
+	       Timestamp t1 = Timestamp::now();
+	       double delta_time = t1 - t0;
+	       DEB_TRACE() << "Buff_Alloc = " << (int) (delta_time * 1000) << " (ms)";		
+	       t0 = t1;
 
-	//@BEGIN : Ensure that Acquisition is Started before return ...
-	DEB_TRACE() << "prepareAcq ...";
-	DEB_TRACE() << "Ensure that Acquisition is Started";
-	setStatus(Camera::Exposure, false);
-	if(false == m_hThdStatus)
-	{
-		m_frame.pBuffer = NULL;
-		m_frame.ucFormatGet = TUFRM_FMT_RAW;
-		m_frame.uiRsdSize = 1;// how many frames do you want
-
-		// Alloc buffer after set resolution or set ROI attribute
-		DEB_TRACE() << "TUCAM_Buf_Alloc";
-		TUCAM_Buf_Alloc(m_opCam.hIdxTUCam, &m_frame);
-
-		DEB_TRACE() << "TUCAM_Cap_Start";
-		if(m_trigger_mode == IntTrig)
-		{
-			// Start capture in software trigger
-			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE);
-		}
-		else if(m_trigger_mode == ExtTrigSingle)
-		{
-		        TUCAM_TRIGGER_ATTR tgrAttr;
-			tgrAttr.nDelayTm = 0;
-			tgrAttr.nEdgeMode = TUCTD_RISING;
-		        tgrAttr.nFrames = m_nb_frames;
-			tgrAttr.nTgrMode = TUCCM_TRIGGER_STANDARD;
-			tgrAttr.nExpMode = TUCTE_EXPTM;
-			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);			
-			// Start capture in external trigger single (EXPOSURE SOFT)
-			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
-		}
-		else if(m_trigger_mode == ExtTrigMult)
-		{
-			// Start capture in external trigger STANDARD (EXPOSURE SOFT)
-			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
-		}
-		else if(m_trigger_mode == ExtGate)
-		{
-			// Start capture in external trigger STANDARD (EXPOSURE WIDTH)
-			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
-		}
-		
-		////DEB_TRACE() << "TUCAM CreateEvent";
-		pthread_cond_init(&m_hThdEvent, NULL);
-		m_hThdStatus = true;
-	}
-	
-	//@BEGIN : trigger the acquisition
-	if(m_trigger_mode == IntTrig)	
-	{
-		DEB_TRACE() <<"Start Internal Trigger Timer";
-		m_internal_trigger_timer->start();
-	}
-	//@END
-	
-	Timestamp t1 = Timestamp::now();
-	double delta_time = t1 - t0;
-	DEB_TRACE() << "prepareAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
-	//@END
+	  }
 }
 
 //-----------------------------------------------------
@@ -215,11 +167,55 @@ void Camera::prepareAcq()
 void Camera::startAcq()
 {
 	DEB_MEMBER_FUNCT();
-	AutoMutex lock(m_cond.mutex());
-	
 	Timestamp t0 = Timestamp::now();
-
+        Timestamp t1;
 	DEB_TRACE() << "startAcq ...";
+	
+	//@BEGIN : trigger the acquisition
+	DEB_TRACE() << "TUCAM_Cap_Start";
+	if(m_trigger_mode == IntTrig)	
+	{
+	        // Start capture in software trigger
+	        TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE);
+	  }
+	else if(m_trigger_mode == ExtTrigSingle)
+	  {
+	        TUCAM_TRIGGER_ATTR tgrAttr;
+		tgrAttr.nDelayTm = 0;
+		tgrAttr.nEdgeMode = TUCTD_RISING;
+		tgrAttr.nFrames = m_nb_frames;
+		tgrAttr.nTgrMode = TUCCM_TRIGGER_STANDARD;
+		tgrAttr.nExpMode = TUCTE_EXPTM;
+		TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);			
+		// Start capture in external trigger single (EXPOSURE SOFT)
+		TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
+	  }
+	else if(m_trigger_mode == ExtTrigMult)
+	  {
+	        // Start capture in external trigger STANDARD (EXPOSURE SOFT)
+	        TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
+	  }
+	else if(m_trigger_mode == ExtGate)
+	  {
+	        // Start capture in external trigger STANDARD (EXPOSURE WIDTH)
+	        TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
+	  }
+		
+	////DEB_TRACE() << "TUCAM CreateEvent";
+	pthread_cond_init(&m_hThdEvent, NULL);
+	
+	//@BEGIN : trigger the acquisition
+	if(m_trigger_mode == IntTrig)	
+	{
+		DEB_TRACE() <<"Start Internal Trigger Timer";
+		m_internal_trigger_timer->start();
+	}
+	t1 = Timestamp::now();
+	double delta_time = t1 - t0;
+	DEB_TRACE() << "Cap_start = " << (int) (delta_time * 1000) << " (ms)";
+	t0=t1;
+	AutoMutex lock(m_cond.mutex());	
+
 	m_acq_frame_nb = 0;
 	StdBufferCbMgr& buffer_mgr = m_bufferCtrlObj.getBuffer();
 	buffer_mgr.setStartTimestamp(Timestamp::now());
@@ -234,9 +230,9 @@ void Camera::startAcq()
 		m_cond.wait();
 	}
 	
-	Timestamp t1 = Timestamp::now();
-	double delta_time = t1 - t0;
-	DEB_TRACE() << "startAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
+	t1 = Timestamp::now();
+	delta_time = t1 - t0;
+	DEB_TRACE() << "elapsed time = " << (int) (delta_time * 1000) << " (ms)";
 }
 
 //-----------------------------------------------------
@@ -252,12 +248,8 @@ void Camera::stopAcq()
 	{
 		m_wait_flag = true;
 		m_cond.broadcast();		
-	}
-
-	//@BEGIN : Ensure that Acquisition is Stopped before return ...			
-	Timestamp t0 = Timestamp::now();
-	if(false != m_hThdStatus)
-	{
+   
+		//@BEGIN : Ensure that Acquisition is Stopped before return ...			
 		DEB_TRACE() << "TUCAM_Buf_AbortWait";
 
 
@@ -276,17 +268,20 @@ void Camera::stopAcq()
 		// Release alloc buffer after stop capture
 		DEB_TRACE() << "TUCAM_Buf_Release";
 		TUCAM_Buf_Release(m_opCam.hIdxTUCam);
-	}
-	//@END	
+		m_prepared = false;
+		t1 = Timestamp::now();
+		delta_time = t1 - t0;
+		DEB_TRACE() << "Buf_Release = " << (int) (delta_time * 1000) << " (ms)";		
+		t0 = t1;
 	
-	//@BEGIN : trigger the acquisition
-	if(m_trigger_mode == IntTrig)	
-	{
-		DEB_TRACE() <<"Stop Internal Trigger Timer";
-		m_internal_trigger_timer->stop();
-	}
-	//@END
-	
+		//@BEGIN : trigger the acquisition
+		if(m_trigger_mode == IntTrig)	
+		  {
+		    DEB_TRACE() <<"Stop Internal Trigger Timer";
+		    m_internal_trigger_timer->stop();
+		  }
+		//@END
+	}	
 	//@BEGIN
 	//now detector is ready
 	DEB_TRACE() << "Ensure that Acquisition is Stopped";
