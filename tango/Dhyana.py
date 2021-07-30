@@ -14,7 +14,18 @@ class Dhyana(PyTango.Device_4Impl):
 #------------------------------------------------------------------
     def __init__(self,*args) :
         PyTango.Device_4Impl.__init__(self,*args)
-
+        # dictionnaries to be used with AttrHelper.get_attr_4u
+        self.__TriggerMode = {'STANDARD':  _DhyanaCam.TriggerStandard,
+                             'GLOBAL': _DhyanaCam.TriggerGlobal,
+                             'SYNCHRONOUS':  _DhyanaCam.TriggerSynchronous
+                              }
+        self.__TriggerEdge = {'RISING': _DhyanaCam.EdgeRising,
+                              'FALLING': _DhyanaCam.EdgeFalling
+        }
+        self.__GlobalGain = {'HDR': _DhyanaCam.GainHDR,
+                             'HIGH': _DhyanaCam.GainHigh,
+                             'LOW': _DhyanaCam.GainLow
+                             }
         # self.__Attribute2FunctionBase = {
         # }
         
@@ -36,6 +47,10 @@ class Dhyana(PyTango.Device_4Impl):
 
         if self.temperature_target:
             _DhyanaCam.setTemperatureTarget(self.temperature_target)
+        if self.trigger_mode:
+            _DhyanaCam.setTriggerMode(self.__TriggerMode[self.trigger_mode.upper()])
+        if self.trigger_edge:
+            _DhyanaCam.setTriggerEdge(self.__TriggerEdge[self.trigger_edge.upper()])
 
 #------------------------------------------------------------------
 #    getAttrStringValueList command:
@@ -73,6 +88,12 @@ class DhyanaClass(PyTango.DeviceClass):
         'temperature_target':
         [PyTango.DevDouble,
          "Temperature set point", -10],
+        'trigger_mode':
+        [PyTango.DevString,
+         "Tucam trigger mode", "STANDARD"],
+        'trigger_edge':
+        [PyTango.DevString,
+         "trigger edge", "RISING"],
         }
 
     cmd_list = {
@@ -119,11 +140,11 @@ class DhyanaClass(PyTango.DeviceClass):
              'description': 'Temperature target',
          }],
         'global_gain':
-        [[PyTango.DevUShort,
+        [[PyTango.DevString,
           PyTango.SCALAR,
           PyTango.READ_WRITE],
          {
-             'unit': 'C',
+             'unit': 'n/a',
              'format': '',
              'description': 'Global gain setting',
          }],        
@@ -135,6 +156,24 @@ class DhyanaClass(PyTango.DeviceClass):
              'unit': 'level',
              'format': '',
              'description': 'FAN speed',
+         }],        
+        'trigger_mode':
+        [[PyTango.DevString,
+          PyTango.SCALAR,
+          PyTango.READ_WRITE],
+         {
+             'unit': 'mode',
+             'format': '',
+             'description': 'Tucam trigger mode (standard, global or synchronize)',
+         }],        
+        'trigger_edge':
+        [[PyTango.DevString,
+          PyTango.SCALAR,
+          PyTango.READ_WRITE],
+         {
+             'unit': 'edge',
+             'format': '',
+             'description': 'Detection edge mode, rising or falling',
          }],        
 
     }
