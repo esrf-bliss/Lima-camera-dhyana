@@ -157,7 +157,7 @@ private:
         }
     }
     pthread_mutex_t     m_hThdLock;
-    bool                m_hThdStatus;
+
     //////////////////////////////
     // -- dhyana specific members
     //////////////////////////////
@@ -179,10 +179,11 @@ private:
     Camera::Status      m_status;
     Bin                 m_bin;
     double              m_temperature_target;
+    bool                m_prepared;
     // Buffer control object
     SoftBufferCtrlObj   m_bufferCtrlObj;
-	CSoftTriggerTimer*	m_internal_trigger_timer;
-	unsigned short 		m_timer_period_ms;
+    CSoftTriggerTimer*	m_internal_trigger_timer;
+    unsigned short 		m_timer_period_ms;
 
 } ;
 

@@ -48,7 +48,8 @@ m_trigger_mode(IntTrig),
 m_status(Ready),
 m_acq_frame_nb(0),
 m_temperature_target(0),
-m_timer_period_ms(timer_period_ms)
+m_timer_period_ms(timer_period_ms),
+m_prepared(false)
 {
 
 	DEB_CONSTRUCTOR();	
@@ -121,9 +122,6 @@ void Camera::init()
 	{
 		THROW_HW_ERROR(Error) << "Unable to open the camera !";
 	}
-	
-	//initialize TUCAM Event used when Waiting for Frame
-	m_hThdStatus = false;
 }
 
 //-----------------------------------------------------
@@ -143,70 +141,24 @@ void Camera::reset()
 //-----------------------------------------------------
 void Camera::prepareAcq()
 {
-	DEB_MEMBER_FUNCT();
-	AutoMutex lock(m_cond.mutex());
+        DEB_MEMBER_FUNCT();
 	Timestamp t0 = Timestamp::now();
+	if (!m_prepared)
+	  {
+	       m_frame.pBuffer = NULL;
+	       m_frame.ucFormatGet = TUFRM_FMT_RAW;
+	       m_frame.uiRsdSize = 1;// how many frames do you want
+	       
+	       // Alloc buffer after set resolution or set ROI attribute
+	       DEB_TRACE() << "TUCAM_Buf_Alloc";
+	       TUCAM_Buf_Alloc(m_opCam.hIdxTUCam, &m_frame);
+	       m_prepared = true;
+	       Timestamp t1 = Timestamp::now();
+	       double delta_time = t1 - t0;
+	       DEB_TRACE() << "Buff_Alloc = " << (int) (delta_time * 1000) << " (ms)";		
+	       t0 = t1;
 
-	//@BEGIN : Ensure that Acquisition is Started before return ...
-	DEB_TRACE() << "prepareAcq ...";
-	DEB_TRACE() << "Ensure that Acquisition is Started";
-	setStatus(Camera::Exposure, false);
-	if(false == m_hThdStatus)
-	{
-		m_frame.pBuffer = NULL;
-		m_frame.ucFormatGet = TUFRM_FMT_RAW;
-		m_frame.uiRsdSize = 1;// how many frames do you want
-
-		// Alloc buffer after set resolution or set ROI attribute
-		DEB_TRACE() << "TUCAM_Buf_Alloc";
-		TUCAM_Buf_Alloc(m_opCam.hIdxTUCam, &m_frame);
-
-		DEB_TRACE() << "TUCAM_Cap_Start";
-		if(m_trigger_mode == IntTrig)
-		{
-			// Start capture in software trigger
-			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE);
-		}
-		else if(m_trigger_mode == ExtTrigSingle)
-		{
-		        TUCAM_TRIGGER_ATTR tgrAttr;
-			tgrAttr.nDelayTm = 0;
-			tgrAttr.nEdgeMode = TUCTD_RISING;
-		        tgrAttr.nFrames = m_nb_frames;
-			tgrAttr.nTgrMode = TUCCM_TRIGGER_STANDARD;
-			tgrAttr.nExpMode = TUCTE_EXPTM;
-			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);			
-			// Start capture in external trigger single (EXPOSURE SOFT)
-			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
-		}
-		else if(m_trigger_mode == ExtTrigMult)
-		{
-			// Start capture in external trigger STANDARD (EXPOSURE SOFT)
-			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
-		}
-		else if(m_trigger_mode == ExtGate)
-		{
-			// Start capture in external trigger STANDARD (EXPOSURE WIDTH)
-			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
-		}
-		
-		////DEB_TRACE() << "TUCAM CreateEvent";
-		pthread_cond_init(&m_hThdEvent, NULL);
-		m_hThdStatus = true;
-	}
-	
-	//@BEGIN : trigger the acquisition
-	if(m_trigger_mode == IntTrig)	
-	{
-		DEB_TRACE() <<"Start Internal Trigger Timer";
-		m_internal_trigger_timer->start();
-	}
-	//@END
-	
-	Timestamp t1 = Timestamp::now();
-	double delta_time = t1 - t0;
-	DEB_TRACE() << "prepareAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
-	//@END
+	  }
 }
 
 //-----------------------------------------------------
@@ -215,11 +167,55 @@ void Camera::prepareAcq()
 void Camera::startAcq()
 {
 	DEB_MEMBER_FUNCT();
-	AutoMutex lock(m_cond.mutex());
-	
 	Timestamp t0 = Timestamp::now();
-
+        Timestamp t1;
 	DEB_TRACE() << "startAcq ...";
+	
+	//@BEGIN : trigger the acquisition
+	DEB_TRACE() << "TUCAM_Cap_Start";
+	if(m_trigger_mode == IntTrig)	
+	{
+	        // Start capture in software trigger
+	        TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE);
+	  }
+	else if(m_trigger_mode == ExtTrigSingle)
+	  {
+	        TUCAM_TRIGGER_ATTR tgrAttr;
+		tgrAttr.nDelayTm = 0;
+		tgrAttr.nEdgeMode = TUCTD_RISING;
+		tgrAttr.nFrames = m_nb_frames;
+		tgrAttr.nTgrMode = TUCCM_TRIGGER_STANDARD;
+		tgrAttr.nExpMode = TUCTE_EXPTM;
+		TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);			
+		// Start capture in external trigger single (EXPOSURE SOFT)
+		TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
+	  }
+	else if(m_trigger_mode == ExtTrigMult)
+	  {
+	        // Start capture in external trigger STANDARD (EXPOSURE SOFT)
+	        TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
+	  }
+	else if(m_trigger_mode == ExtGate)
+	  {
+	        // Start capture in external trigger STANDARD (EXPOSURE WIDTH)
+	        TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
+	  }
+		
+	////DEB_TRACE() << "TUCAM CreateEvent";
+	pthread_cond_init(&m_hThdEvent, NULL);
+	
+	//@BEGIN : trigger the acquisition
+	if(m_trigger_mode == IntTrig)	
+	{
+		DEB_TRACE() <<"Start Internal Trigger Timer";
+		m_internal_trigger_timer->start();
+	}
+	t1 = Timestamp::now();
+	double delta_time = t1 - t0;
+	DEB_TRACE() << "Cap_start = " << (int) (delta_time * 1000) << " (ms)";
+	t0=t1;
+	AutoMutex lock(m_cond.mutex());	
+
 	m_acq_frame_nb = 0;
 	StdBufferCbMgr& buffer_mgr = m_bufferCtrlObj.getBuffer();
 	buffer_mgr.setStartTimestamp(Timestamp::now());
@@ -234,9 +230,9 @@ void Camera::startAcq()
 		m_cond.wait();
 	}
 	
-	Timestamp t1 = Timestamp::now();
-	double delta_time = t1 - t0;
-	DEB_TRACE() << "startAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
+	t1 = Timestamp::now();
+	delta_time = t1 - t0;
+	DEB_TRACE() << "elapsed time = " << (int) (delta_time * 1000) << " (ms)";
 }
 
 //-----------------------------------------------------
@@ -248,54 +244,66 @@ void Camera::stopAcq()
 	AutoMutex aLock(m_cond.mutex());
 	DEB_TRACE() << "stopAcq ...";
 	// Don't do anything if acquisition is idle.
+	Timestamp t0 = Timestamp::now();
+	Timestamp t1;
 	if(m_thread_running == true)
 	{
 		m_wait_flag = true;
 		m_cond.broadcast();		
-	}
-
-	//@BEGIN : Ensure that Acquisition is Stopped before return ...			
-	Timestamp t0 = Timestamp::now();
-	if(false != m_hThdStatus)
-	{
+   
+		//@BEGIN : Ensure that Acquisition is Stopped before return ...			
 		DEB_TRACE() << "TUCAM_Buf_AbortWait";
-
-
+		
 		TUCAM_Buf_AbortWait(m_opCam.hIdxTUCam);
+		t1 = Timestamp::now();
+		double delta_time = t1 - t0;
+		DEB_TRACE() << "AbortWait = " << (int) (delta_time * 1000) << " (ms)";		
+		t0 = t1;
 		pthread_mutex_lock(&m_hThdLock);
 		while (!m_signalled) {
-			pthread_cond_wait(&m_hThdEvent, &m_hThdLock);
+		  pthread_cond_wait(&m_hThdEvent, &m_hThdLock);
 		}
 		m_signalled = false;
 		pthread_mutex_unlock(&m_hThdLock);
 		pthread_cond_destroy(&m_hThdEvent);
-		m_hThdStatus = false;
+		t1 = Timestamp::now();
+		delta_time = t1 - t0;
+		DEB_TRACE() << "bordel mutex = " << (int) (delta_time * 1000) << " (ms)";		
+		t0 = t1;
+
 		// Stop capture   
 		DEB_TRACE() << "TUCAM_Cap_Stop";
 		TUCAM_Cap_Stop(m_opCam.hIdxTUCam);
-		// Release alloc buffer after stop capture
+		t1 = Timestamp::now();
+		delta_time = t1 - t0;
+		DEB_TRACE() << "Cap_Stop = " << (int) (delta_time * 1000) << " (ms)";		
+		t0 = t1;
+		//Release alloc buffer after stop capture
 		DEB_TRACE() << "TUCAM_Buf_Release";
 		TUCAM_Buf_Release(m_opCam.hIdxTUCam);
-	}
-	//@END	
+		m_prepared = false;
+		t1 = Timestamp::now();
+		delta_time = t1 - t0;
+		DEB_TRACE() << "Buf_Release = " << (int) (delta_time * 1000) << " (ms)";		
+		t0 = t1;
 	
-	//@BEGIN : trigger the acquisition
-	if(m_trigger_mode == IntTrig)	
-	{
-		DEB_TRACE() <<"Stop Internal Trigger Timer";
-		m_internal_trigger_timer->stop();
-	}
-	//@END
-	
+		//@BEGIN : trigger the acquisition
+		if(m_trigger_mode == IntTrig)	
+		  {
+		    DEB_TRACE() <<"Stop Internal Trigger Timer";
+		    m_internal_trigger_timer->stop();
+		  }
+		//@END
+	}	
 	//@BEGIN
 	//now detector is ready
 	DEB_TRACE() << "Ensure that Acquisition is Stopped";
 	setStatus(Camera::Ready, false);
 	//@END	
 	
-	Timestamp t1 = Timestamp::now();
+	t1 = Timestamp::now();
 	double delta_time = t1 - t0;
-	DEB_TRACE() << "stopAcq : elapsed time = " << (int) (delta_time * 1000) << " (ms)";		
+	DEB_TRACE() << "elapsed time = " << (int) (delta_time * 1000) << " (ms)";		
 }
 
 //-----------------------------------------------------
@@ -336,9 +344,9 @@ bool Camera::readFrame(void *bptr, int& frame_nb)
 	frame_nb = m_frame.uiIndex;
 	//@END	
 
-//	Timestamp t1 = Timestamp::now();
-//	double delta_time = t1 - t0;
-//	DEB_TRACE() << "readFrame : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
+	Timestamp t1 = Timestamp::now();
+	double delta_time = t1 - t0;
+	DEB_TRACE() << "readFrame : elapsed time = " << (int) (delta_time * 1000) << " (ms)";
 	return false;
 }
 
@@ -396,23 +404,6 @@ void Camera::AcqThread::threadFunction()
 			
 			if(TUCAMRET_SUCCESS == TUCAM_Buf_WaitForFrame(m_cam.m_opCam.hIdxTUCam, &m_cam.m_frame))
 			{
-				//The based information
-				//DEB_TRACE() << "m_cam.m_frame.szSignature = "	<< m_cam.m_frame.szSignature<<std::endl;		// [out]Copyright+Version: TU+1.0 ['T', 'U', '1', '\0']		
-				//DEB_TRACE() << "m_cam.m_frame.usHeader = "	<< m_cam.m_frame.usHeader<<std::endl;			// [out] The frame header size
-				//DEB_TRACE() << "m_cam.m_frame.usOffset = "	<< m_cam.m_frame.usOffset<<std::endl;			// [out] The frame data offset
-				//DEB_TRACE() << "m_cam.m_frame.usWidth = "		<< m_cam.m_frame.usWidth;						// [out] The frame width
-				//DEB_TRACE() << "m_cam.m_frame.usHeight = "	<< m_cam.m_frame.usHeight;						// [out] The frame height
-				//DEB_TRACE() << "m_cam.m_frame.uiWidthStep = "	<< m_cam.m_frame.uiWidthStep<<std::endl;		// [out] The frame width step
-				//DEB_TRACE() << "m_cam.m_frame.ucDepth = "		<< m_cam.m_frame.ucDepth<<std::endl;			// [out] The frame data depth 
-				//DEB_TRACE() << "m_cam.m_frame.ucFormat = "	<< m_cam.m_frame.ucFormat<<std::endl;			// [out] The frame data format                  
-				//DEB_TRACE() << "m_cam.m_frame.ucChannels = "	<< m_cam.m_frame.ucChannels<<std::endl;			// [out] The frame data channels
-				//DEB_TRACE() << "m_cam.m_frame.ucElemBytes = "	<< m_cam.m_frame.ucElemBytes<<std::endl;		// [out] The frame data bytes per element
-				//DEB_TRACE() << "m_cam.m_frame.ucFormatGet = "	<< m_cam.m_frame.ucFormatGet<<std::endl;		// [in]  Which frame data format do you want    see TUFRM_FORMATS
-				//DEB_TRACE() << "m_cam.m_frame.uiIndex = "		<< m_cam.m_frame.uiIndex;						// [in/out] The frame index number
-				//DEB_TRACE() << "m_cam.m_frame.uiImgSize = "	<< m_cam.m_frame.uiImgSize;						// [out] The frame size
-				//DEB_TRACE() << "m_cam.m_frame.uiRsdSize = "	<< m_cam.m_frame.uiRsdSize;						// [in]  The frame reserved size    (how many frames do you want)
-				//DEB_TRACE() << "m_cam.m_frame.uiHstSize = "	<< m_cam.m_frame.uiHstSize<<std::endl;			// [out] The frame histogram size	
-
 				// Grabbing was successful, process image
 				m_cam.setStatus(Camera::Readout, false);
 
@@ -1136,4 +1127,4 @@ void Camera::getFirmwareVersion(std::string& version)
 
 //-----------------------------------------------------
 //
-//-----------------------------------------------------  
+//-----------------------------------------------------

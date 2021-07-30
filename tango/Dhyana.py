@@ -34,6 +34,9 @@ class Dhyana(PyTango.Device_4Impl):
         self.set_state(PyTango.DevState.ON)
         self.get_device_properties(self.get_device_class())
 
+        if self.temperature_target:
+            _DhyanaCam.setTemperatureTarget(self.temperature_target)
+
 #------------------------------------------------------------------
 #    getAttrStringValueList command:
 #
@@ -67,6 +70,9 @@ class DhyanaClass(PyTango.DeviceClass):
         'internal_trigger_timer':
         [PyTango.DevLong,
          "Internal Trigger Timer",999],
+        'temperature_target':
+        [PyTango.DevDouble,
+         "Temperature set point", -10],
         }
 
     cmd_list = {
