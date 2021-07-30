@@ -876,7 +876,23 @@ void Camera::checkRoi(const Roi& set_roi, Roi& hw_roi)
 	//@BEGIN : check available values of Roi
 	if(set_roi.isActive())
 	{
-		hw_roi = set_roi;
+	        setRoi(set_roi);
+		getRoi(hw_roi);
+		//hw roi X is multple of 4 and camera return the lower value
+		if (hw_roi.getTopLeft().x < set_roi.getTopLeft().x)
+		  {
+		    Size s1 = hw_roi.getSize();
+		    //hw roi width is multiple of 8, so increase it to let lima doing subroi
+		    Size* s2 = new Size(s1.getWidth()+8,s1.getHeight());
+		    hw_roi.setSize(*s2);
+		  }
+		if(hw_roi.getSize().getWidth() < set_roi.getSize().getWidth())
+		  {
+		    Size s1 = hw_roi.getSize();
+		    //hw roi width is multiple of 8, so increase it to let lima doing subroi
+		    Size* s2 = new Size(s1.getWidth()+8,s1.getHeight());
+		    hw_roi.setSize(*s2);	    
+		  }
 	}
 	else
 	{
