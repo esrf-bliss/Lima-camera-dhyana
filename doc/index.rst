@@ -67,24 +67,32 @@ This plugin has been implemented in respect of the mandatory capabilites .
 
 * HwSync
 
-  Supported trigger types are:
+  Supported trigger mode are:
    - IntTrig
    - ExtTrigSingle
+   - ExtTrigMult
    - ExtGate
   
   
 Optional capabilites
 ........................
 
+* Rolling (standard) vs. Global shutter
+
+  The camera can support different trigger modes, please refer to the documentation for more details.
+  The camera plugin provides commands to change the trigger (shutter) mode, from standard (rolling) to
+  global. An other mode calls "synchronous" is also available.
+
 * Cooling
 
   - Cooling method : Peltier cooling
-  - Cooling temperature : Forced air (Ambient at +25 Celsius):-10 Celsius
-  - The TUCam SDK allows accessing the temperature (R/W).
+  - Cooling temperature : Forced air (Ambient at +25 Celsius): -10 Celsius
+  - The TUCam SDK allows accessing the temperature target (R/W).
 
 * HwRoi
 
-  Roi parameters (x, y , width, height) must be power of 2 and > 32
+  Roi parameters (x, y , width, height), thanks to Lima you can set any Roi but
+  to activate a real Hw Roi the camera only support x offset as factor of 4 and width as factor of 8.
 
 
 * HwBin
@@ -114,6 +122,9 @@ For a quick test one can use the python binding, here is a short code example:
   import time
 
   cam = Dhyana.Camera()
+
+  # set temperature cooling
+  cam.setTemperatureTarget(-10)
 
   # Get the hardware interface
   hwint = Dhyana.Interface(cam)
