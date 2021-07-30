@@ -621,8 +621,8 @@ void Camera::getPixelSize(double& sizex, double& sizey)
 {
 	DEB_MEMBER_FUNCT();
 	//@BEGIN : Get Pixels size in micron from Driver/API			
-	sizex = PIXEL_SIZE_WIDTH_MICRON;
-	sizey = PIXEL_SIZE_HEIGHT_MICRON;
+	sizex = PIXEL_SIZE_WIDTH_MICRON*1e-6;
+	sizey = PIXEL_SIZE_HEIGHT_MICRON*1e-6;
 	//@END
 }
 
@@ -1119,6 +1119,7 @@ void Camera::getFirmwareVersion(std::string& version)
 		THROW_HW_ERROR(Error) << "Unable to Read TUIDI_VERSION_FRMW from the camera !";
 	}
 	version = valInfo.nValue;
+	version = valInfo.pText;
 }
 
 //-----------------------------------------------------
