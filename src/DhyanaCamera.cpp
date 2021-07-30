@@ -49,9 +49,11 @@ m_status(Ready),
 m_acq_frame_nb(0),
 m_temperature_target(0),
 m_timer_period_ms(timer_period_ms),
-m_prepared(false)
+m_prepared(false),
+m_tucam_trigger_mode(TriggerStandard),
+m_tucam_trigger_edge_mode(EdgeRising),
+m_cold_start(true)
 {
-
 	DEB_CONSTRUCTOR();	
 	//Init TUCAM	
 	init();		
@@ -145,20 +147,67 @@ void Camera::prepareAcq()
 	Timestamp t0 = Timestamp::now();
 	if (!m_prepared)
 	  {
+	    if (m_cold_start)
+	      {
+		//At cold start we must trig a fake capture, otherwise the camera will never capture frames
+		m_cold_start = false;
+		DEB_TRACE() << "Cold start";
+		TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE);
+		TUCAM_Cap_Stop(m_opCam.hIdxTUCam);
+	      }
 	       m_frame.pBuffer = NULL;
 	       m_frame.ucFormatGet = TUFRM_FMT_RAW;
 	       m_frame.uiRsdSize = 1;// how many frames do you want
 	       
 	       // Alloc buffer after set resolution or set ROI attribute
 	       DEB_TRACE() << "TUCAM_Buf_Alloc";
-	       TUCAM_Buf_Alloc(m_opCam.hIdxTUCam, &m_frame);
+	       if(TUCAMRET_SUCCESS != TUCAM_Buf_Alloc(m_opCam.hIdxTUCam, &m_frame))
+		 {
+		   THROW_HW_ERROR(Error) << "Buff_Alloc failed";
+		 }
 	       m_prepared = true;
 	       Timestamp t1 = Timestamp::now();
 	       double delta_time = t1 - t0;
 	       DEB_TRACE() << "Buff_Alloc = " << (int) (delta_time * 1000) << " (ms)";		
 	       t0 = t1;
-
 	  }
+	TUCAM_TRIGGER_ATTR tgrAttr;
+	if (TUCAMRET_SUCCESS != TUCAM_Cap_GetTrigger(m_opCam.hIdxTUCam, &tgrAttr))
+	  {
+	    THROW_HW_ERROR(Error) << "Cap_GetTrigger failed";
+	  }
+	tgrAttr.nTgrMode = -1;//NOT DEFINED (see below)
+	tgrAttr.nFrames = 1;
+	tgrAttr.nDelayTm = 0;
+	tgrAttr.nExpMode = -1;//NOT DEFINED (see below)
+	tgrAttr.nEdgeMode = m_tucam_trigger_edge_mode;
+	
+	switch(m_trigger_mode)
+	  {
+	  case IntTrig:
+	    tgrAttr.nTgrMode = TUCCM_TRIGGER_SOFTWARE;
+	    tgrAttr.nExpMode = TUCTE_EXPTM;
+	    break;
+	  case ExtTrigMult :
+	    tgrAttr.nTgrMode = m_tucam_trigger_mode;
+	    tgrAttr.nExpMode = TUCTE_EXPTM;
+	    break;
+	  case ExtGate:		
+	    tgrAttr.nTgrMode = m_tucam_trigger_mode;
+	    tgrAttr.nExpMode = TUCTE_WIDTH;
+	    break;			
+	  case ExtTrigSingle :
+	    tgrAttr.nFrames = m_nb_frames;
+	    tgrAttr.nTgrMode = m_tucam_trigger_mode;
+	    tgrAttr.nExpMode = TUCTE_EXPTM;
+	    break;
+	  }
+        if(TUCAMRET_SUCCESS != TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr))
+	  {
+	    THROW_HW_ERROR(Error) << "Cap_SetTrigger failed";
+	  }
+	
+	DEB_TRACE() << "TUCAM_Cap_SetTrigger : " << m_trigger_mode << ", " << tgrAttr.nTgrMode << ", " <<  tgrAttr.nExpMode;
 }
 
 //-----------------------------------------------------
@@ -176,31 +225,21 @@ void Camera::startAcq()
 	if(m_trigger_mode == IntTrig)	
 	{
 	        // Start capture in software trigger
-	        TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE);
-	  }
-	else if(m_trigger_mode == ExtTrigSingle)
+	  if(TUCAMRET_SUCCESS !=TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE))
+	    {
+	      THROW_HW_ERROR(Error) << "Cap_SetTrigger failed";
+	    }
+	}
+	else
 	  {
-	        TUCAM_TRIGGER_ATTR tgrAttr;
-		tgrAttr.nDelayTm = 0;
-		tgrAttr.nEdgeMode = TUCTD_RISING;
-		tgrAttr.nFrames = m_nb_frames;
-		tgrAttr.nTgrMode = TUCCM_TRIGGER_STANDARD;
-		tgrAttr.nExpMode = TUCTE_EXPTM;
-		TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);			
-		// Start capture in external trigger single (EXPOSURE SOFT)
-		TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
+	    if(TUCAMRET_SUCCESS !=TUCAM_Cap_Start(m_opCam.hIdxTUCam, m_tucam_trigger_mode))
+	      {
+		THROW_HW_ERROR(Error) << "Cap_SetTrigger failed";
+	      }
 	  }
-	else if(m_trigger_mode == ExtTrigMult)
-	  {
-	        // Start capture in external trigger STANDARD (EXPOSURE SOFT)
-	        TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
-	  }
-	else if(m_trigger_mode == ExtGate)
-	  {
-	        // Start capture in external trigger STANDARD (EXPOSURE WIDTH)
-	        TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
-	  }
-		
+	//  Cap_Start is not synchronous enough with the real camera status, so the camera can miss the trigger
+	usleep(1e5);
+	
 	////DEB_TRACE() << "TUCAM CreateEvent";
 	pthread_cond_init(&m_hThdEvent, NULL);
 	
@@ -630,45 +669,7 @@ void Camera::setTrigMode(TrigMode mode)
 	DEB_TRACE() << "setTrigMode() " << DEB_VAR1(mode);
 	DEB_PARAM() << DEB_VAR1(mode);
 	//@BEGIN
-	TUCAM_TRIGGER_ATTR tgrAttr;
-	tgrAttr.nTgrMode = -1;//NOT DEFINED (see below)
-	tgrAttr.nFrames = 1;
-	tgrAttr.nDelayTm = 0;
-	tgrAttr.nExpMode = -1;//NOT DEFINED (see below)
-	tgrAttr.nEdgeMode = TUCTD_RISING;
 
-	switch(mode)
-	{
-		case IntTrig:
-			tgrAttr.nTgrMode = TUCCM_TRIGGER_SOFTWARE;
-			tgrAttr.nExpMode = TUCTE_EXPTM;
-			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);
-			DEB_TRACE() << "TUCAM_Cap_SetTrigger : TUCCM_TRIGGER_SOFTWARE (EXPOSURE SOFTWARE)";
-			break;
-		case ExtTrigMult :
-			tgrAttr.nTgrMode = TUCCM_TRIGGER_STANDARD;
-			tgrAttr.nExpMode = TUCTE_EXPTM;
-			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);
-			DEB_TRACE() << "TUCAM_Cap_SetTrigger : TUCCM_TRIGGER_STANDARD (EXPOSURE SOFTWARE: "<<tgrAttr.nExpMode<<")";
-			break;
-		case ExtGate:		
-			tgrAttr.nTgrMode = TUCCM_TRIGGER_STANDARD;
-			tgrAttr.nExpMode = TUCTE_WIDTH;
-			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);
-			DEB_TRACE() << "TUCAM_Cap_SetTrigger : TUCCM_TRIGGER_STANDARD (EXPOSURE TRIGGER WIDTH: "<<tgrAttr.nExpMode<<")";
-			break;			
-		case ExtTrigSingle :
-		        tgrAttr.nFrames = m_nb_frames;
-			tgrAttr.nTgrMode = TUCCM_TRIGGER_STANDARD;
-			tgrAttr.nExpMode = TUCTE_EXPTM;
-			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);
-			DEB_TRACE() << "TUCAM_Cap_SetTrigger : TUCCM_TRIGGER_STANDARD (EXPOSURE SOFTWARE: "<<tgrAttr.nExpMode<<")";
-			break;
-		case IntTrigMult:
-		case ExtTrigReadout:
-		default:
-			THROW_HW_ERROR(NotSupported) << DEB_VAR1(mode);
-	}
 	m_trigger_mode = mode;
 	//@END
 

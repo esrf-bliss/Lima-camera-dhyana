@@ -70,6 +70,20 @@ public:
         Ready, Exposure, Readout, Latency, Fault
     } ;
 
+    enum TucamTriggerMode
+    {
+      TriggerStandard = TUCCM_TRIGGER_STANDARD,
+      TriggerSynchronous = TUCCM_TRIGGER_SYNCHRONOUS,
+      TriggerGlobal = TUCCM_TRIGGER_GLOBAL,
+      //TriggerSoftware = TUCCM_TRIGGER_SOFTWARE, do not map, this mode is used for Lima IntTrigSingle and Timer to retrig
+    };
+
+    enum TucamTriggerEdge
+    {
+      EdgeRising = TUCTD_RISING,
+      EdgeFalling = TUCTD_FAILING,
+    };
+
     Camera(unsigned short timer_period_ms);
     virtual ~Camera();
 
@@ -133,6 +147,11 @@ public:
     void getGlobalGain(unsigned& gain);
     void getTucamVersion(std::string& version);
     void getFirmwareVersion(std::string& version);
+    
+    void getTriggerMode(TucamTriggerMode& mode){mode = m_tucam_trigger_mode;};
+    void setTriggerMode(TucamTriggerMode mode){m_tucam_trigger_mode = mode;};
+    void getTriggerEdge(TucamTriggerEdge& edge){edge = m_tucam_trigger_edge_mode;};
+    void setTriggerEdge(TucamTriggerEdge edge){m_tucam_trigger_edge_mode = edge;};
     bool isAcqRunning() const;
 
 	//TUCAM stuff, use TUCAM notations !
@@ -180,6 +199,9 @@ private:
     Bin                 m_bin;
     double              m_temperature_target;
     bool                m_prepared;
+    bool                m_cold_start;
+    TucamTriggerMode    m_tucam_trigger_mode;
+    TucamTriggerEdge    m_tucam_trigger_edge_mode;
     // Buffer control object
     SoftBufferCtrlObj   m_bufferCtrlObj;
     CSoftTriggerTimer*	m_internal_trigger_timer;
