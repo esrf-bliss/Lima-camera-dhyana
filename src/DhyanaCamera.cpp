@@ -1129,3 +1129,43 @@ void Camera::getFirmwareVersion(std::string& version)
 //-----------------------------------------------------
 //
 //-----------------------------------------------------
+void Camera::setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge, int delay, int width)
+{
+  DEB_MEMBER_FUNCT();
+  TUCAM_TRGOUT_ATTR tgroutAttr;
+
+  if (port <0 || port >2)
+    {
+      THROW_HW_ERROR(Error) << "Invalid output port number range is [0-2]";
+
+    }
+  tgroutAttr.nTgrOutPort = port;
+  tgroutAttr.nTgrOutMode = (int)signal;
+  tgroutAttr.nEdgeMode = (int)edge;
+  tgroutAttr.nDelayTm = delay;
+  tgroutAttr.nWidth = width;
+    
+  if(TUCAMRET_SUCCESS != TUCAM_Cap_SetTriggerOut (m_opCam.hIdxTUCam, tgroutAttr))
+    {
+      THROW_HW_ERROR(Error) << "Unable to set Output signal port "<< port;
+    }
+  
+}
+
+void Camera::getOutputSignal(int port, TucamSignal& signal, TucamSignalEdge& edge, int& delay, int& width)
+{
+  DEB_MEMBER_FUNCT();
+  TUCAM_TRGOUT_ATTR tgroutAttr;
+
+  tgroutAttr.nTgrOutPort = port;
+
+  if(TUCAMRET_SUCCESS != TUCAM_Cap_GetTriggerOut (m_opCam.hIdxTUCam, &tgroutAttr))
+    {
+      THROW_HW_ERROR(Error) << "Unable to get Output signal port "<< port;
+    }  
+  signal = (TucamSignal) tgroutAttr.nTgrOutMode;
+  edge = (TucamSignalEdge)tgroutAttr.nEdgeMode;
+  delay = tgroutAttr.nDelayTm;
+  width =tgroutAttr.nWidth;
+}
+    

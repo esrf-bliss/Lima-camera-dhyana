@@ -84,6 +84,26 @@ public:
       EdgeFalling = TUCTD_FAILING,
     };
 
+    enum TucamSignal
+    {
+      SignalTrigIn = TUOPT_IN,        //copy of the trigger IN
+      SignalStart = TUOPT_EXPSTART,   // Exposure start (rolling)
+      SignalGlobal = TUOPT_EXPGLOBAL, // Global exposure
+      SignalReadEnd = TUOPT_READEND   // readout end
+    };
+    enum TucamSignalEdge
+    {
+      SignalEdgeRising = TUOPT_RISING,
+      SignalEdgeFalling = TUOPT_FAILING,
+    };
+
+    enum TucamGain
+    {
+      GainHDR  = TUGAIN_HDR,
+      GainHigh = TUGAIN_HIGH,
+      GainLow  = TUGAIN_LOW
+    };
+    
     Camera(unsigned short timer_period_ms);
     virtual ~Camera();
 
@@ -152,6 +172,9 @@ public:
     void setTriggerMode(TucamTriggerMode mode){m_tucam_trigger_mode = mode;};
     void getTriggerEdge(TucamTriggerEdge& edge){edge = m_tucam_trigger_edge_mode;};
     void setTriggerEdge(TucamTriggerEdge edge){m_tucam_trigger_edge_mode = edge;};
+    void getOutputSignal(int port, TucamSignal& signal, TucamSignalEdge& edge, int& delay, int& width);
+    void setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge=SignalEdgeRising, int delay=-1, int width=-1);
+    
     bool isAcqRunning() const;
 
 	//TUCAM stuff, use TUCAM notations !
