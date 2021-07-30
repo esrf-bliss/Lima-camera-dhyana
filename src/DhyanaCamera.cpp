@@ -167,6 +167,18 @@ void Camera::prepareAcq()
 			// Start capture in software trigger
 			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE);
 		}
+		else if(m_trigger_mode == ExtTrigSingle)
+		{
+		        TUCAM_TRIGGER_ATTR tgrAttr;
+			tgrAttr.nDelayTm = 0;
+			tgrAttr.nEdgeMode = TUCTD_RISING;
+		        tgrAttr.nFrames = m_nb_frames;
+			tgrAttr.nTgrMode = TUCCM_TRIGGER_STANDARD;
+			tgrAttr.nExpMode = TUCTE_EXPTM;
+			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);			
+			// Start capture in external trigger single (EXPOSURE SOFT)
+			TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_STANDARD);
+		}
 		else if(m_trigger_mode == ExtTrigMult)
 		{
 			// Start capture in external trigger STANDARD (EXPOSURE SOFT)
@@ -604,11 +616,11 @@ bool Camera::checkTrigMode(TrigMode mode)
 	{
 		case IntTrig:
 		case ExtTrigMult:
+		case ExtTrigSingle:
 		case ExtGate:
 			valid_mode = true;
 			break;
 		case ExtTrigReadout:
-		case ExtTrigSingle:
 		case IntTrigMult:
 		default:
 			valid_mode = false;
@@ -654,7 +666,13 @@ void Camera::setTrigMode(TrigMode mode)
 			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);
 			DEB_TRACE() << "TUCAM_Cap_SetTrigger : TUCCM_TRIGGER_STANDARD (EXPOSURE TRIGGER WIDTH: "<<tgrAttr.nExpMode<<")";
 			break;			
-		case ExtTrigSingle :		
+		case ExtTrigSingle :
+		        tgrAttr.nFrames = m_nb_frames;
+			tgrAttr.nTgrMode = TUCCM_TRIGGER_STANDARD;
+			tgrAttr.nExpMode = TUCTE_EXPTM;
+			TUCAM_Cap_SetTrigger(m_opCam.hIdxTUCam, tgrAttr);
+			DEB_TRACE() << "TUCAM_Cap_SetTrigger : TUCCM_TRIGGER_STANDARD (EXPOSURE SOFTWARE: "<<tgrAttr.nExpMode<<")";
+			break;
 		case IntTrigMult:
 		case ExtTrigReadout:
 		default:
