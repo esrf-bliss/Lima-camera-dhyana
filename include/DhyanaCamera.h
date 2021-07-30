@@ -70,6 +70,40 @@ public:
         Ready, Exposure, Readout, Latency, Fault
     } ;
 
+    enum TucamTriggerMode
+    {
+      TriggerStandard = TUCCM_TRIGGER_STANDARD,
+      TriggerSynchronous = TUCCM_TRIGGER_SYNCHRONOUS,
+      TriggerGlobal = TUCCM_TRIGGER_GLOBAL,
+      //TriggerSoftware = TUCCM_TRIGGER_SOFTWARE, do not map, this mode is used for Lima IntTrigSingle and Timer to retrig
+    };
+
+    enum TucamTriggerEdge
+    {
+      EdgeRising = TUCTD_RISING,
+      EdgeFalling = TUCTD_FAILING,
+    };
+
+    enum TucamSignal
+    {
+      SignalTrigIn = TUOPT_IN,        //copy of the trigger IN
+      SignalStart = TUOPT_EXPSTART,   // Exposure start (rolling)
+      SignalGlobal = TUOPT_EXPGLOBAL, // Global exposure
+      SignalReadEnd = TUOPT_READEND   // readout end
+    };
+    enum TucamSignalEdge
+    {
+      SignalEdgeRising = TUOPT_RISING,
+      SignalEdgeFalling = TUOPT_FAILING,
+    };
+
+    enum TucamGain
+    {
+      GainHDR  = TUGAIN_HDR,
+      GainHigh = TUGAIN_HIGH,
+      GainLow  = TUGAIN_LOW
+    };
+    
     Camera(unsigned short timer_period_ms);
     virtual ~Camera();
 
@@ -129,33 +163,30 @@ public:
     void getTemperature(double& temp);
     void setFanSpeed(unsigned speed);
     void getFanSpeed(unsigned& speed);
-    void setGlobalGain(unsigned gain);
-    void getGlobalGain(unsigned& gain);
+    void setGlobalGain(TucamGain gain);
+    void getGlobalGain(TucamGain& gain);
     void getTucamVersion(std::string& version);
     void getFirmwareVersion(std::string& version);
+    
+    void getTriggerMode(TucamTriggerMode& mode){mode = m_tucam_trigger_mode;};
+    void setTriggerMode(TucamTriggerMode mode){m_tucam_trigger_mode = mode;};
+    void getTriggerEdge(TucamTriggerEdge& edge){edge = m_tucam_trigger_edge_mode;};
+    void setTriggerEdge(TucamTriggerEdge edge){m_tucam_trigger_edge_mode = edge;};
+    void getOutputSignal(int port, TucamSignal& signal, TucamSignalEdge& edge, int& delay, int& width);
+    void setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge=SignalEdgeRising, int delay=-1, int width=-1);
+    
     bool isAcqRunning() const;
 
-	//TUCAM stuff, use TUCAM notations !
-	TUCAM_INIT          m_itApi; // TUCAM handle Api
-	TUCAM_OPEN          m_opCam; // TUCAM handle camera
-	TUCAM_FRAME         m_frame; // TUCAM frame structure
-	pthread_cond_t      m_hThdEvent; // TUCAM handle event
+    //TUCAM stuff, use TUCAM notations !
+    TUCAM_INIT          m_itApi; // TUCAM handle Api
+    TUCAM_OPEN          m_opCam; // TUCAM handle camera
+    TUCAM_FRAME         m_frame; // TUCAM frame structure
+    pthread_cond_t      m_hThdEvent; // TUCAM handle event
     bool                m_signalled;
 private:
     //read/copy frame
     bool readFrame(void *bptr, int& frame_nb);
     void setStatus(Camera::Status status, bool force);
-    inline bool IS_POWER_OF_2(long x)
-    {
-        if( ((x ^ (x - 1)) == x + (x - 1)) && (x != 0) )
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
     pthread_mutex_t     m_hThdLock;
 
     //////////////////////////////
@@ -180,10 +211,13 @@ private:
     Bin                 m_bin;
     double              m_temperature_target;
     bool                m_prepared;
+    bool                m_cold_start;
+    TucamTriggerMode    m_tucam_trigger_mode;
+    TucamTriggerEdge    m_tucam_trigger_edge_mode;
     // Buffer control object
     SoftBufferCtrlObj   m_bufferCtrlObj;
     CSoftTriggerTimer*	m_internal_trigger_timer;
-    unsigned short 		m_timer_period_ms;
+    unsigned short      m_timer_period_ms;
 
 } ;
 

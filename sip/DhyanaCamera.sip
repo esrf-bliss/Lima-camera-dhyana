@@ -12,6 +12,41 @@ namespace Dhyana
         Ready, Exposure, Readout, Latency, Fault
     } ;
 
+    enum TucamTriggerMode
+    {
+      TriggerStandard = TUCCM_TRIGGER_STANDARD,
+      TriggerSynchronous = TUCCM_TRIGGER_SYNCHRONOUS,
+      TriggerGlobal = TUCCM_TRIGGER_GLOBAL,
+      //TriggerSoftware = TUCCM_TRIGGER_SOFTWARE, do not map, this mode is used for Lima IntTrigSingle and Timer to retrig
+    };
+    
+    enum TucamTriggerEdge
+    {
+      EdgeRising = TUCTD_RISING,
+      EdgeFalling = TUCTD_FAILING,
+    };
+
+    enum TucamSignal
+    {
+      SignalTrigIn = TUOPT_IN,        //copy of the trigger IN
+      SignalStart = TUOPT_EXPSTART,   // Exposure start (rolling)
+      SignalGlobal = TUOPT_EXPGLOBAL, // Global exposure
+      SignalReadEnd = TUOPT_READEND   // readout end
+    };
+    
+    enum TucamSignalEdge
+    {
+      SignalEdgeRising = TUOPT_RISING,
+      SignalEdgeFalling = TUOPT_FAILING,
+    };
+    
+     enum TucamGain
+    {
+      GainHDR  = TUGAIN_HDR,
+      GainHigh = TUGAIN_HIGH,
+      GainLow  = TUGAIN_LOW
+    };
+
     Camera(unsigned short timer_period_ms);
     virtual ~Camera();
 
@@ -69,10 +104,17 @@ namespace Dhyana
     void getTemperature(double& temp /Out/);
     void setFanSpeed(unsigned speed);
     void getFanSpeed(unsigned& speed /Out/);
-    void setGlobalGain(unsigned gain);
-    void getGlobalGain(unsigned& gain /Out/);
+    void setGlobalGain(TucamGain gain);
+    void getGlobalGain(TucamGain& gain /Out/);
     void getTucamVersion(std::string& version /Out/);
     void getFirmwareVersion(std::string& version /Out/);
+    
+    void getTriggerMode(TucamTriggerMode& mode /Out/);
+    void setTriggerMode(TucamTriggerMode mode);
+    void getTriggerEdge(TucamTriggerEdge& edge /Out/);
+    void setTriggerEdge(TucamTriggerEdge edge);
+    void getOutputSignal(int port, TucamSignal& signal, TucamSignalEdge& edge, int& delay, int& width);
+    void setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge=SignalEdgeRising, int delay=-1, int width=-1);
     bool isAcqRunning() const;
   };
 };
