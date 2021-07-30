@@ -163,8 +163,8 @@ public:
     void getTemperature(double& temp);
     void setFanSpeed(unsigned speed);
     void getFanSpeed(unsigned& speed);
-    void setGlobalGain(unsigned gain);
-    void getGlobalGain(unsigned& gain);
+    void setGlobalGain(TucamGain gain);
+    void getGlobalGain(TucamGain& gain);
     void getTucamVersion(std::string& version);
     void getFirmwareVersion(std::string& version);
     
@@ -177,27 +177,16 @@ public:
     
     bool isAcqRunning() const;
 
-	//TUCAM stuff, use TUCAM notations !
-	TUCAM_INIT          m_itApi; // TUCAM handle Api
-	TUCAM_OPEN          m_opCam; // TUCAM handle camera
-	TUCAM_FRAME         m_frame; // TUCAM frame structure
-	pthread_cond_t      m_hThdEvent; // TUCAM handle event
+    //TUCAM stuff, use TUCAM notations !
+    TUCAM_INIT          m_itApi; // TUCAM handle Api
+    TUCAM_OPEN          m_opCam; // TUCAM handle camera
+    TUCAM_FRAME         m_frame; // TUCAM frame structure
+    pthread_cond_t      m_hThdEvent; // TUCAM handle event
     bool                m_signalled;
 private:
     //read/copy frame
     bool readFrame(void *bptr, int& frame_nb);
     void setStatus(Camera::Status status, bool force);
-    inline bool IS_POWER_OF_2(long x)
-    {
-        if( ((x ^ (x - 1)) == x + (x - 1)) && (x != 0) )
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
     pthread_mutex_t     m_hThdLock;
 
     //////////////////////////////
@@ -228,7 +217,7 @@ private:
     // Buffer control object
     SoftBufferCtrlObj   m_bufferCtrlObj;
     CSoftTriggerTimer*	m_internal_trigger_timer;
-    unsigned short 		m_timer_period_ms;
+    unsigned short      m_timer_period_ms;
 
 } ;
 

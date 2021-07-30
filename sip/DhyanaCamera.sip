@@ -104,8 +104,8 @@ namespace Dhyana
     void getTemperature(double& temp /Out/);
     void setFanSpeed(unsigned speed);
     void getFanSpeed(unsigned& speed /Out/);
-    void setGlobalGain(unsigned gain);
-    void getGlobalGain(unsigned& gain /Out/);
+    void setGlobalGain(TucamGain gain);
+    void getGlobalGain(TucamGain& gain /Out/);
     void getTucamVersion(std::string& version /Out/);
     void getFirmwareVersion(std::string& version /Out/);
     

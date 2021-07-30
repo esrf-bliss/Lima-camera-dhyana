@@ -1065,14 +1065,9 @@ void Camera::getFanSpeed(unsigned& speed)
 //-----------------------------------------------------
 //
 //-----------------------------------------------------  
-void Camera::setGlobalGain(unsigned gain)
+void Camera::setGlobalGain(TucamGain gain)
 {
 	DEB_MEMBER_FUNCT();
-
-	if(gain != 0 && gain != 1 && gain != 2)
-	{
-		THROW_HW_ERROR(Error) << "Available gain values are : 0:HDR\n1:HIGH\n2: LOW !";
-	}
 
 	double dbVal = (double) gain;
 	if(TUCAMRET_SUCCESS != TUCAM_Prop_SetValue(m_opCam.hIdxTUCam, TUIDP_GLOBALGAIN, dbVal))
@@ -1084,7 +1079,7 @@ void Camera::setGlobalGain(unsigned gain)
 //-----------------------------------------------------
 //
 //-----------------------------------------------------  
-void Camera::getGlobalGain(unsigned& gain)
+void Camera::getGlobalGain(TucamGain& gain)
 {
 	DEB_MEMBER_FUNCT();
 
@@ -1093,7 +1088,7 @@ void Camera::getGlobalGain(unsigned& gain)
 	{
 		THROW_HW_ERROR(Error) << "Unable to Read TUIDP_GLOBALGAIN from the camera !";
 	}
-	gain = (unsigned) dbVal;
+	gain = (TucamGain)dbVal;
 }
 
 //-----------------------------------------------------
