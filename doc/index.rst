@@ -27,7 +27,8 @@ The Dhyana 95 is only supporting USB3 interface. On Linux USB device can only be
 To allow any user to control the camera you should manually change the udev settings for this particular usb device.
 As root create a new file under /etc/udev/rules.d/99-tucsen.rules add the following udev rules:
 
-.. code-block::
+.. code-block:: sh
+
   ATTR{idVendor}=="5453", MODE="0666"
 
 Then you can simply unplug your camera, restart the computer and then plug the camera
