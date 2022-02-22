@@ -22,7 +22,6 @@ requirements:
     - lima-core
     - tucam-sdk >=2.0.0
   build:
-    - git
     - cmake
     - make
     - {{ compiler('cxx') }}
