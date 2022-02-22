@@ -19,7 +19,7 @@ requirements:
   host:
     - python {{ python }}
     - sip 4.19.8              # For compatibility with pyqt 5.9.2
-    - lima-core >=1.9.6
+    - lima-core
     - tucam-sdk >=2.0.0
   build:
     - git
