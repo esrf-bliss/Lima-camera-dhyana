@@ -14,19 +14,17 @@ stages:
 build-linux:
   <<: *build-conda
   script:
-    - conda build ./conda/camera --prefix-length=80 --output-folder=dist/
+    - conda mambabuild ./conda/camera --prefix-length=80 --output-folder=dist/ -c conda-forge -c http://bcu-ci.esrf.fr/stable
   tags:
-    - cos7
+    - linux
 
 build-noarch:
   <<: *build-conda
   stage: build-noarch
   script:
-    - conda build ./conda/tango --prefix-length=80 --output-folder=dist/ -c tango-controls
+    - conda mambabuild ./conda/tango --prefix-length=80 --output-folder=dist/ -c conda-forge -c tango-controls -c http://bcu-ci.esrf.fr/stable
   dependencies:
     - build-linux
-  tags:
-    - cos7
 
 deploy-devel:
   stage: deploy
