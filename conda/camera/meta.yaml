@@ -18,16 +18,16 @@ build:
 requirements:
   host:
     - python {{ python }}
-    - sip 4.19.8              # For compatibility with pyqt 5.9.2
-    - lima-core
+    - sip 4.19*
+    - lima-core >=1.9.20
     - tucam-sdk 2.0.0
   build:
     - cmake
-    - make
+    - ninja
     - {{ compiler('cxx') }}
   run:
-    - python {{ python }}
-    - sip >=4.19.4, <=4.19.8  # For compatibility with pyqt 5.9.2
+    - python
+    - {{ pin_compatible('sip', min_pin='x.x.x', max_pin='x') }}
     - {{ pin_compatible('lima-core', max_pin='x.x') }}
     - tucam-sdk 2.0.0
 
