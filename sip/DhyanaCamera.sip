@@ -116,5 +116,7 @@ namespace Dhyana
     void getOutputSignal(int port, TucamSignal& signal, TucamSignalEdge& edge, int& delay, int& width);
     void setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge=SignalEdgeRising, int delay=-1, int width=-1);
     bool isAcqRunning() const;
+  private:
+    Camera(const Camera&);
   };
 };

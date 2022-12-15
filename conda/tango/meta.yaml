@@ -19,8 +19,7 @@ build:
 requirements:
   build:
     - cmake
-    - make
-    - git
+    - ninja
     - lima-core
   run:
     - lima-tango-server
