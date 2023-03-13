@@ -160,7 +160,7 @@ void CSoftTriggerTimer::on_timer()
 		if(m_nb_triggers == m_cam.getNbHwAcquiredFrames() && m_nb_triggers < m_nb_frames)
 		{
 			m_nb_triggers++;
-			//DEB_TRACE() << "CSoftTriggerTimer::on_timer : DoSoftwareTrigger - "<<m_nb_triggers;
+			DEB_TRACE() << "CSoftTriggerTimer::on_timer : DoSoftwareTrigger - "<<m_nb_triggers;
 			TUCAM_Cap_DoSoftwareTrigger(m_cam.m_opCam.hIdxTUCam);
 		}
 	}
