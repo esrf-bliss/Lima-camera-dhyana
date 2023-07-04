@@ -157,7 +157,10 @@ void Camera::prepareAcq()
 	      }
 	       m_frame.pBuffer = NULL;
 	       m_frame.ucFormatGet = TUFRM_FMT_RAW;
-	       m_frame.uiRsdSize = 1;// how many frames do you want
+	       if (m_trigger_mode ==  ExtTrigSingle)
+		   m_frame.uiRsdSize = m_nb_frames;// how many frames do you want
+	       else
+		   m_frame.uiRsdSize = 1;// how many frames do you want
 	       
 	       // Alloc buffer after set resolution or set ROI attribute
 	       DEB_TRACE() << "TUCAM_Buf_Alloc";
@@ -185,6 +188,12 @@ void Camera::prepareAcq()
 	switch(m_trigger_mode)
 	  {
 	  case IntTrig:
+	    //tgrAttr.nTgrMode = TUCCM_TRIGGER_SOFTWARE;
+	    tgrAttr.nTgrMode = TUCCM_SEQUENCE;
+	    tgrAttr.nExpMode = TUCTE_EXPTM;
+	    tgrAttr.nDelayTm = m_lat_time;
+	    break;
+	  case IntTrigMult:
 	    tgrAttr.nTgrMode = TUCCM_TRIGGER_SOFTWARE;
 	    tgrAttr.nExpMode = TUCTE_EXPTM;
 	    break;
@@ -208,6 +217,8 @@ void Camera::prepareAcq()
 	  }
 	
 	DEB_TRACE() << "TUCAM_Cap_SetTrigger : " << m_trigger_mode << ", " << tgrAttr.nTgrMode << ", " <<  tgrAttr.nExpMode;
+	// new acq. reset the acquired nb. frames
+	m_acq_frame_nb = 0;
 }
 
 //-----------------------------------------------------
@@ -218,50 +229,63 @@ void Camera::startAcq()
 	DEB_MEMBER_FUNCT();
 	Timestamp t0 = Timestamp::now();
         Timestamp t1;
-	DEB_TRACE() << "startAcq ...";
 	
 	//@BEGIN : trigger the acquisition
 	DEB_TRACE() << "TUCAM_Cap_Start";
-	if(m_trigger_mode == IntTrig)	
-	{
-	        // Start capture in software trigger
-	  if(TUCAMRET_SUCCESS !=TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE))
+	switch (m_trigger_mode){
+	case IntTrig:
+	  // Start capture in software trigger
+	  //if(TUCAMRET_SUCCESS !=TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE))
+	  if(TUCAMRET_SUCCESS !=TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_SEQUENCE))
 	    {
-	      THROW_HW_ERROR(Error) << "Cap_SetTrigger failed";
+	      THROW_HW_ERROR(Error) << "Cap_Start failed";
 	    }
-	}
-	else
-	  {
-	    if(TUCAMRET_SUCCESS !=TUCAM_Cap_Start(m_opCam.hIdxTUCam, m_tucam_trigger_mode))
+	  break;
+	case IntTrigMult:
+	  if (m_acq_frame_nb == 0)
+	    if(TUCAMRET_SUCCESS !=TUCAM_Cap_Start(m_opCam.hIdxTUCam, TUCCM_TRIGGER_SOFTWARE))
 	      {
-		THROW_HW_ERROR(Error) << "Cap_SetTrigger failed";
+		THROW_HW_ERROR(Error) << "Cap_Start failed";
 	      }
-	  }
-	//  Cap_Start is not synchronous enough with the real camera status, so the camera can miss the trigger
-	usleep(1e5);
+	  
+	  if(TUCAMRET_SUCCESS !=TUCAM_Cap_DoSoftwareTrigger(m_opCam.hIdxTUCam))
+	    {
+		THROW_HW_ERROR(Error) << "Cap_DoSoftwareTrigger failed";
+	    }	  	  
+	  break;
+	  
+	default:
+	  if(TUCAMRET_SUCCESS !=TUCAM_Cap_Start(m_opCam.hIdxTUCam, m_tucam_trigger_mode))
+	    {
+	      THROW_HW_ERROR(Error) << "Cap_Start failed";
+	    }
+	  //  Cap_Start is not synchronous enough with the real camera status, so the camera
+	  // can miss the first hw trigger
+	  usleep(1e5);
+	  break;
+	}
 	
-	////DEB_TRACE() << "TUCAM CreateEvent";
 	pthread_cond_init(&m_hThdEvent, NULL);
 	
 	//@BEGIN : trigger the acquisition
-	if(m_trigger_mode == IntTrig)	
+	if(m_trigger_mode == IntTrigMult)	
 	{
 		DEB_TRACE() <<"Start Internal Trigger Timer";
-		m_internal_trigger_timer->start();
+		//m_internal_trigger_timer->start();
 	}
 	t1 = Timestamp::now();
 	double delta_time = t1 - t0;
 	DEB_TRACE() << "Cap_start = " << (int) (delta_time * 1000) << " (ms)";
 	t0=t1;
+	
 	AutoMutex lock(m_cond.mutex());	
-
-	m_acq_frame_nb = 0;
-	StdBufferCbMgr& buffer_mgr = m_bufferCtrlObj.getBuffer();
-	buffer_mgr.setStartTimestamp(Timestamp::now());
 	
 	DEB_TRACE() << "Ensure that Acquisition is Started  & wait thread to be started";
 	setStatus(Camera::Exposure, false);		
-	//Start acquisition thread & wait 
+	// Start acquisition thread & wait
+	// acqStart() can be called for each new frame only in IntTrigMult mode,
+	// wake up the thread only once
+	if (m_acq_frame_nb == 0)
 	{
 		m_wait_flag = false;
 		m_quit = false;
@@ -330,7 +354,7 @@ void Camera::stopAcq()
 		if(m_trigger_mode == IntTrig)	
 		  {
 		    DEB_TRACE() <<"Stop Internal Trigger Timer";
-		    m_internal_trigger_timer->stop();
+		    //m_internal_trigger_timer->stop();
 		  }
 		//@END
 	}	
@@ -364,7 +388,10 @@ void Camera::getStatus(Camera::Status& status)
 {
 	DEB_MEMBER_FUNCT();
 	AutoMutex aLock(m_cond.mutex());
-	status = m_status;
+	if (m_trigger_mode == IntTrigMult)
+	  status = Camera::Ready;
+	else
+	  status = m_status;
 
 	DEB_RETURN() << DEB_VAR1(status);
 }
@@ -411,7 +438,8 @@ void Camera::AcqThread::threadFunction()
 		//if quit is requested (requested only by destructor)
 		if(m_cam.m_quit)
 			return;
-
+		buffer_mgr.setStartTimestamp(Timestamp::now());
+		
 		DEB_TRACE() << "Running ...";
 		m_cam.m_thread_running = true;
 		m_cam.m_cond.broadcast();
@@ -419,7 +447,6 @@ void Camera::AcqThread::threadFunction()
 
 		Timestamp t0_capture = Timestamp::now();
 
-		//@BEGIN 
 		DEB_TRACE() << "Capture all frames ...";
 		bool continueFlag = true;
 		while(continueFlag && (!m_cam.m_nb_frames || m_cam.m_acq_frame_nb < m_cam.m_nb_frames))
@@ -463,12 +490,6 @@ void Camera::AcqThread::threadFunction()
 				Timestamp t1 = Timestamp::now();
 				double delta_time = t1 - t0;
 				
-				//wait latency after each frame , except for the last image 
-				if((!m_cam.m_nb_frames) || (m_cam.m_acq_frame_nb < m_cam.m_nb_frames) && (m_cam.m_lat_time))
-				{
-					////DEB_TRACE() << "Wait latency time : " << m_cam.m_lat_time * 1000 << " (ms) ...";
-					usleep((DWORD) (m_cam.m_lat_time * 1000000));
-				}				
 			}
 			else
 			{
@@ -476,19 +497,15 @@ void Camera::AcqThread::threadFunction()
 			}
 		}
 
-		//
-		////DEB_TRACE() << "TUCAM SetEvent";
 		pthread_mutex_lock(&m_cam.m_hThdLock);
 		m_cam.m_signalled = true;
 		pthread_cond_signal(&m_cam.m_hThdEvent);
 		pthread_mutex_unlock(&m_cam.m_hThdLock);
-		//@END
 		
 		//stopAcq only if this is not already done		
 		DEB_TRACE() << "stopAcq only if this is not already done";
 		if(!m_cam.m_wait_flag)
 		{
-			////DEB_TRACE() << "stopAcq";
 			m_cam.stopAcq();
 		}
 
@@ -499,7 +516,6 @@ void Camera::AcqThread::threadFunction()
 		Timestamp t1_capture = Timestamp::now();
 		double delta_time_capture = t1_capture - t0_capture;
 		DEB_TRACE() << "Capture all frames elapsed time = " << (int) (delta_time_capture * 1000) << " (ms)";			
-
 		aLock.lock();
 		m_cam.m_thread_running = false;
 		m_cam.m_wait_flag = true;
@@ -647,11 +663,11 @@ bool Camera::checkTrigMode(TrigMode mode)
 		case IntTrig:
 		case ExtTrigMult:
 		case ExtTrigSingle:
+		case IntTrigMult:
 		case ExtGate:
 			valid_mode = true;
 			break;
 		case ExtTrigReadout:
-		case IntTrigMult:
 		default:
 			valid_mode = false;
 			break;

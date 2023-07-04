@@ -135,13 +135,16 @@ void Interface::getStatus(StatusType& status)
 	switch (camera_status)
     {
     case Camera::Ready:
-      status.set(HwInterface::StatusType::Ready);
+      status.det = DetIdle;
+      status.acq = AcqReady;
       break;
     case Camera::Exposure:
-      status.set(HwInterface::StatusType::Exposure);
+      status.det = DetExposure;
+      status.acq = AcqRunning;
       break;
     case Camera::Readout:
-      status.set(HwInterface::StatusType::Readout);
+      status.det = DetReadout;
+      status.acq = AcqRunning;
       break;
     case Camera::Latency:
       status.set(HwInterface::StatusType::Latency);
