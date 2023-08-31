@@ -181,6 +181,7 @@ void Camera::prepareAcq()
 	  }
 	tgrAttr.nTgrMode = -1;//NOT DEFINED (see below)
 	tgrAttr.nFrames = 1;
+	tgrAttr.nBufFrames = 1;
 	tgrAttr.nDelayTm = 0;
 	tgrAttr.nExpMode = -1;//NOT DEFINED (see below)
 	tgrAttr.nEdgeMode = m_tucam_trigger_edge_mode;
@@ -468,7 +469,7 @@ void Camera::AcqThread::threadFunction()
 				DEB_TRACE() << "TUCAM_Buf_WaitForFrame ...";
 			}
 			
-			if(TUCAMRET_SUCCESS == TUCAM_Buf_WaitForFrame(m_cam.m_opCam.hIdxTUCam, &m_cam.m_frame))
+			if(TUCAMRET_SUCCESS == TUCAM_Buf_WaitForFrame(m_cam.m_opCam.hIdxTUCam, &m_cam.m_frame,10000))
 			{
 				// Grabbing was successful, process image
 				m_cam.setStatus(Camera::Readout, false);
@@ -482,7 +483,7 @@ void Camera::AcqThread::threadFunction()
 		
 				//Push the image buffer through Lima 
 				Timestamp t0 = Timestamp::now();
-				////DEB_TRACE() << "Declare a Lima new Frame Ready (" << m_cam.m_acq_frame_nb << ")";
+				DEB_TRACE() << "Declare a Lima new Frame Ready (" << m_cam.m_acq_frame_nb << ")";
 				HwFrameInfoType frame_info;
 				frame_info.acq_frame_nb = m_cam.m_acq_frame_nb;
 				continueFlag = buffer_mgr.newFrameReady(frame_info);

@@ -63,8 +63,13 @@ TUCAM_API TUCAMRET TUCAM_Prop_GetValueText      (HDTUCAM hTUCam, PTUCAM_VALUE_TE
 TUCAM_API TUCAMRET TUCAM_Buf_Alloc              (HDTUCAM hTUCam, PTUCAM_FRAME pFrame);                              // call TUCAM_Buf_Release() to free.
 TUCAM_API TUCAMRET TUCAM_Buf_Release            (HDTUCAM hTUCam);
 TUCAM_API TUCAMRET TUCAM_Buf_AbortWait          (HDTUCAM hTUCam);                                                   // call after TUCAM_Buf_WaitForFrame()
-TUCAM_API TUCAMRET TUCAM_Buf_WaitForFrame       (HDTUCAM hTUCam, PTUCAM_FRAME pFrame);                              // call after TUCAM_Cap_Start()
+TUCAM_API TUCAMRET TUCAM_Buf_WaitForFrame       (HDTUCAM hTUCam, PTUCAM_FRAME pFrame, INT32 nTimeOut = 1000);       // call after TUCAM_Cap_Start()
 TUCAM_API TUCAMRET TUCAM_Buf_CopyFrame          (HDTUCAM hTUCam, PTUCAM_FRAME pFrame);                              // call after TUCAM_Buf_WaitForFrame()
+
+// Buffer CallBack Function
+TUCAM_API TUCAMRET TUCAM_Buf_DataCallBack       (HDTUCAM hTUCam, BUFFER_CALLBACK cbBuffer, void *pUserContex);
+// Get Buffer Data
+TUCAM_API TUCAMRET TUCAM_Buf_GetData            (HDTUCAM hTUCam, PTUCAM_RAWIMG_HEADER pFrame);
 
 //
 // Capturing control
@@ -131,6 +136,7 @@ TUCAM_API TUCAMRET TUCAM_Proc_Prop_GetValueText (HDTUCAM hTUCam, PTUCAM_VALUE_TE
 // Vendor control
 //
 TUCAM_API TUCAMRET TUCAM_Vendor_Config          (HDTUCAM hTUCam, UINT32 uiMode);
+TUCAM_API TUCAMRET TUCAM_Vendor_ConfigEx        (UINT32  uiICam, UINT32 uiMode);
 TUCAM_API TUCAMRET TUCAM_Vendor_Update          (HDTUCAM hTUCam, PTUCAM_FW_UPDATE updateFW);
 
 //
@@ -160,7 +166,7 @@ TUCAM_API TUCAMRET TUCAM_Rec_SetAppendMode      (HDTUCAM hTUCam, UINT32 uiMode);
 TUCAM_API TUCAMRET TUCAM_Proc_CopyFrame         (HDTUCAM hTUCam, TUCAM_FRAME **pFrame);
 
 // Config the AF platform
-TUCAM_API TUCAMRET TUCAM_Vendor_AFPlatform      (HDTUCAM hTUCam, ILen *pLen);
+TUCAM_API TUCAMRET TUCAM_Vendor_AFPlatform      (HDTUCAM hTUCam, NVILen *pLen);
 
 
 #endif      // _TUCAM_API_H_

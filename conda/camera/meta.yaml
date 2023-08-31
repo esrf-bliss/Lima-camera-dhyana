@@ -19,8 +19,8 @@ requirements:
   host:
     - python {{ python }}
     - sip 4.19*
-    - lima-core >=1.9.20
-    - tucam-sdk 2.0.0
+    - lima-core 1.9.21
+    - tucam-sdk 2.0.20220915
   build:
     - cmake
     - ninja
@@ -29,7 +29,7 @@ requirements:
     - python
     - {{ pin_compatible('sip', min_pin='x.x.x', max_pin='x') }}
     - {{ pin_compatible('lima-core', max_pin='x.x') }}
-    - tucam-sdk 2.0.0
+    - tucam-sdk 2.0.20220915
 
 #test:
 #  imports:
