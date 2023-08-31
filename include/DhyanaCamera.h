@@ -86,6 +86,8 @@ public:
 
     enum TucamSignal
     {
+      SignalGround = TUOPT_GND,       // use low
+      SignalVCC = TUOPT_VCC,          //use hifh
       SignalTrigIn = TUOPT_IN,        //copy of the trigger IN
       SignalStart = TUOPT_EXPSTART,   // Exposure start (rolling)
       SignalGlobal = TUOPT_EXPGLOBAL, // Global exposure

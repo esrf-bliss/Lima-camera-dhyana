@@ -1186,7 +1186,8 @@ void Camera::getOutputSignal(int port, TucamSignal& signal, TucamSignalEdge& edg
   TUCAM_TRGOUT_ATTR tgroutAttr;
 
   tgroutAttr.nTgrOutPort = port;
-
+  DEB_ALWAYS() << port;
+  
   if(TUCAMRET_SUCCESS != TUCAM_Cap_GetTriggerOut (m_opCam.hIdxTUCam, &tgroutAttr))
     {
       THROW_HW_ERROR(Error) << "Unable to get Output signal port "<< port;

@@ -113,7 +113,7 @@ namespace Dhyana
     void setTriggerMode(TucamTriggerMode mode);
     void getTriggerEdge(TucamTriggerEdge& edge /Out/);
     void setTriggerEdge(TucamTriggerEdge edge);
-    void getOutputSignal(int port, TucamSignal& signal, TucamSignalEdge& edge, int& delay, int& width);
+    void getOutputSignal(int port, TucamSignal& signal /Out/, TucamSignalEdge& edge /Out/, int& delay /Out/, int& width /Out/);
     void setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge=SignalEdgeRising, int delay=-1, int width=-1);
     bool isAcqRunning() const;
   private:

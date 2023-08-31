@@ -62,6 +62,46 @@ class Dhyana(PyTango.Device_4Impl):
     def getAttrStringValueList(self, attr_name):
         #use AttrHelper
         return AttrHelper.get_attr_string_value_list(self, attr_name)
+
+#------------------------------------------------------------------
+#    getOutputSignal command:
+#
+#    Description: return the configuration of the output port N
+#    argin:  port N from 0 to 2
+#    argout: DevVarLongArray:
+#          signal(0-GROUND, 1-VCC, 2-IN, 3-EXPSTART, 4-EXPGLOBAL, 5-READEND),
+#          edge  (0-RISING, 1-FALLING),
+#          delay (in ms),
+#          width (in ms)
+#------------------------------------------------------------------
+    @Core.DEB_MEMBER_FUNCT
+    def getOutputSignal(self, port):
+        print (port)
+        signal, edge, delay, width = _DhyanaCam.getOutputSignal(port)
+        return [signal, edge, delay, width]
+    
+#------------------------------------------------------------------
+#    setOutputSignal command:
+#
+#    Description: return the configuration of the output port N
+#    argin:  void
+#    argout: DevVarLongArray:
+#          port  (0-2)
+#          signal(0-GROUND, 1-VCC, 2-IN, 3-EXPSTART, 4-EXPGLOBAL, 5-READEND),
+#          edge  (0-RISING, 1-FALLING),
+#          delay (in ms),
+#          width (in ms)
+#------------------------------------------------------------------
+    @Core.DEB_MEMBER_FUNCT
+    def setOutputSignal(self, signal_conf):        
+        port = signal_conf[0]
+        signal = int(signal_conf[1])
+        edge = int(signal_conf[2])
+        delay = signal_conf[3]
+        width = signal_conf[4]
+
+        _DhyanaCam.setOutputSignal(port, signal, edge, delay, width)
+        
 #==================================================================
 #
 #    Dhyana read/write attribute methods
@@ -100,6 +140,12 @@ class DhyanaClass(PyTango.DeviceClass):
         'getAttrStringValueList':
         [[PyTango.DevString, "Attribute name"],
          [PyTango.DevVarStringArray, "Authorized String value list"]],
+        'setOutputSignal':
+        [[PyTango.DevVarLongArray, "[port(0-2), signal(0-IN,1-EXPSTART,2-EXPGLOBAL,3-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)"],
+         [PyTango.DevVoid]],
+        'getOutputSignal':
+         [[PyTango.DevLong,"port(0-2)"],
+         [PyTango.DevVarLongArray, "[signal(0-IN,1-EXPSTART,2-EXPGLOBAL,3-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)"]]
         }
 
     attr_list = {
