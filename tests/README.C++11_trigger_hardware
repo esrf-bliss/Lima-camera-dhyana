@@ -1,0 +1,10 @@
+
+To compile this test program from a conda env with gxx_linux-64 installed and the tucam-sdk 2.0 20220915 as well just do:
+
+
+g++ C++11_trigger_hardware.cpp -lTUCam -L$CONDA_PREFIX/lib -I$CONDA_PREFIX/include -o C++11_trigger_hardware
+
+This program comes from tucam sdk example codes, and aims to test the external trigger mode.
+
+
+L.Claustre, 31/08/2023
