@@ -1,3 +1,40 @@
+###########################################################################
+# This file is part of LImA, a Library for Image Acquisition
+#
+#  Copyright (C) : 2009-2023
+#  European Synchrotron Radiation Facility
+#  CS40220 38043 Grenoble Cedex 9
+#  FRANCE
+#
+#  Contact: lima@esrf.fr
+#
+#  This is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This software is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, see <http://www.gnu.org/licenses/>.
+############################################################################
+#=============================================================================
+#
+# file :        Dhyana.py
+#
+# description : Python source for the Basler and its commands.
+#                The class is derived from Device. It represents the
+#                CORBA servant object which will be accessed from the
+#                network. All commands which can be executed on the
+#                Dhyana are implemented in this file.
+#
+# project :     TANGO Device Server
+#
+#=============================================================================
+
 import PyTango
 from Lima import Core
 from Lima import Dhyana as DhyanaAcq
@@ -141,11 +178,11 @@ class DhyanaClass(PyTango.DeviceClass):
         [[PyTango.DevString, "Attribute name"],
          [PyTango.DevVarStringArray, "Authorized String value list"]],
         'setOutputSignal':
-        [[PyTango.DevVarLongArray, "[port(0-2), signal(0-IN,1-EXPSTART,2-EXPGLOBAL,3-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)"],
+        [[PyTango.DevVarLongArray, "[port(0-2), signal(0-GROUND, 1-VCC, 2-IN, 3-EXPSTART, 4-EXPGLOBAL, 5-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)"],
          [PyTango.DevVoid]],
         'getOutputSignal':
          [[PyTango.DevLong,"port(0-2)"],
-         [PyTango.DevVarLongArray, "[signal(0-IN,1-EXPSTART,2-EXPGLOBAL,3-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)"]]
+         [PyTango.DevVarLongArray, "[signal(0-GROUND, 1-VCC, 2-IN, 3-EXPSTART, 4-EXPGLOBAL, 5-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)"]]
         }
 
     attr_list = {

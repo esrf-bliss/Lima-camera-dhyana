@@ -8,7 +8,7 @@
 
 # Lima-camera-dhyana
 
-Lima plugin for the Tucsen Dhyana camera controlled bu TUCam Api, Tested with Dhyana 95V1 (sdk 1.0*) and Dhyana 95V2 (sdk 2.0*)
+Lima plugin for the Tucsen Dhyana camera controlled bu TUCam Api, Tested with Dhyana 95V1 (sdk 1.0* and 2.0*) and Dhyana 95V2 (sdk 2.0*)
 
 ## Install
 

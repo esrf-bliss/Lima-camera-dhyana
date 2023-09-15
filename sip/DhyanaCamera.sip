@@ -1,3 +1,27 @@
+//###########################################################################
+// This file is part of LImA, a Library for Image Acquisition
+//
+// Copyright (C) : 2009-2023
+// European Synchrotron Radiation Facility
+// CS40220 38043 Grenoble Cedex 9
+// FRANCE
+//
+// Contact: lima@esrf.fr
+//
+// This is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
+// This software is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//###########################################################################
+
 namespace Dhyana
 {
   class Camera
@@ -28,6 +52,8 @@ namespace Dhyana
 
     enum TucamSignal
     {
+      SignalGround = TUOPT_GND,       // use low
+      SignalVCC = TUOPT_VCC,          //use high
       SignalTrigIn = TUOPT_IN,        //copy of the trigger IN
       SignalStart = TUOPT_EXPSTART,   // Exposure start (rolling)
       SignalGlobal = TUOPT_EXPGLOBAL, // Global exposure
@@ -114,7 +140,7 @@ namespace Dhyana
     void getTriggerEdge(TucamTriggerEdge& edge /Out/);
     void setTriggerEdge(TucamTriggerEdge edge);
     void getOutputSignal(int port, TucamSignal& signal /Out/, TucamSignalEdge& edge /Out/, int& delay /Out/, int& width /Out/);
-    void setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge=SignalEdgeRising, int delay=-1, int width=-1);
+    void setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge, int delay, int width);
     bool isAcqRunning() const;
   private:
     Camera(const Camera&);

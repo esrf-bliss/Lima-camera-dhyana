@@ -1,10 +1,12 @@
 //###########################################################################
 // This file is part of LImA, a Library for Image Acquisition
 //
-// Copyright (C) : 2009-2014
+// Copyright (C) : 2009-2023
 // European Synchrotron Radiation Facility
-// BP 220, Grenoble 38043
+// CS40220 38043 Grenoble Cedex 9 
 // FRANCE
+//
+// Contact: lima@esrf.fr
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -425,6 +427,7 @@ void Camera::AcqThread::threadFunction()
 	DEB_MEMBER_FUNCT();
 	AutoMutex aLock(m_cam.m_cond.mutex());
 	StdBufferCbMgr& buffer_mgr = m_cam.m_bufferCtrlObj.getBuffer();
+        bool first_frame_in_sequence_mode_trashed;
 
 	while(!m_cam.m_quit)
 	{
@@ -445,6 +448,8 @@ void Camera::AcqThread::threadFunction()
 		m_cam.m_thread_running = true;
 		m_cam.m_cond.broadcast();
 		aLock.unlock();		
+                
+                first_frame_in_sequence_mode_trashed = false;
 
 		Timestamp t0_capture = Timestamp::now();
 
@@ -471,6 +476,10 @@ void Camera::AcqThread::threadFunction()
 			
 			if(TUCAMRET_SUCCESS == TUCAM_Buf_WaitForFrame(m_cam.m_opCam.hIdxTUCam, &m_cam.m_frame,10000))
 			{
+                                if (!first_frame_in_sequence_mode_trashed && m_cam.m_trigger_mode==IntTrig) {
+                                    first_frame_in_sequence_mode_trashed = true;
+                                    continue;
+                                }
 				// Grabbing was successful, process image
 				m_cam.setStatus(Camera::Readout, false);
 
@@ -1184,10 +1193,15 @@ void Camera::setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge,
 void Camera::getOutputSignal(int port, TucamSignal& signal, TucamSignalEdge& edge, int& delay, int& width)
 {
   DEB_MEMBER_FUNCT();
-  TUCAM_TRGOUT_ATTR tgroutAttr;
 
+  TUCAM_TRGOUT_ATTR tgroutAttr;
+  if (port <0 || port >2)
+    {
+      THROW_HW_ERROR(Error) << "Invalid output port number range is [0-2]";
+
+    }
   tgroutAttr.nTgrOutPort = port;
-  DEB_ALWAYS() << port;
+  DEB_ALWAYS() << DEB_VAR1(port);
   
   if(TUCAMRET_SUCCESS != TUCAM_Cap_GetTriggerOut (m_opCam.hIdxTUCam, &tgroutAttr))
     {
