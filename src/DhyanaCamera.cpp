@@ -427,6 +427,7 @@ void Camera::AcqThread::threadFunction()
 	DEB_MEMBER_FUNCT();
 	AutoMutex aLock(m_cam.m_cond.mutex());
 	StdBufferCbMgr& buffer_mgr = m_cam.m_bufferCtrlObj.getBuffer();
+        bool first_frame_in_sequence_mode_trashed;
 
 	while(!m_cam.m_quit)
 	{
@@ -447,6 +448,8 @@ void Camera::AcqThread::threadFunction()
 		m_cam.m_thread_running = true;
 		m_cam.m_cond.broadcast();
 		aLock.unlock();		
+                
+                first_frame_in_sequence_mode_trashed = false;
 
 		Timestamp t0_capture = Timestamp::now();
 
@@ -473,6 +476,10 @@ void Camera::AcqThread::threadFunction()
 			
 			if(TUCAMRET_SUCCESS == TUCAM_Buf_WaitForFrame(m_cam.m_opCam.hIdxTUCam, &m_cam.m_frame,10000))
 			{
+                                if (!first_frame_in_sequence_mode_trashed && m_cam.m_trigger_mode==IntTrig) {
+                                    first_frame_in_sequence_mode_trashed = true;
+                                    continue;
+                                }
 				// Grabbing was successful, process image
 				m_cam.setStatus(Camera::Readout, false);
 
