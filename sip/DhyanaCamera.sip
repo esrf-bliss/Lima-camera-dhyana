@@ -52,6 +52,8 @@ namespace Dhyana
 
     enum TucamSignal
     {
+      SignalGround = TUOPT_GND,       // use low
+      SignalVCC = TUOPT_VCC,          //use high
       SignalTrigIn = TUOPT_IN,        //copy of the trigger IN
       SignalStart = TUOPT_EXPSTART,   // Exposure start (rolling)
       SignalGlobal = TUOPT_EXPGLOBAL, // Global exposure
@@ -138,7 +140,7 @@ namespace Dhyana
     void getTriggerEdge(TucamTriggerEdge& edge /Out/);
     void setTriggerEdge(TucamTriggerEdge edge);
     void getOutputSignal(int port, TucamSignal& signal /Out/, TucamSignalEdge& edge /Out/, int& delay /Out/, int& width /Out/);
-    void setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge=SignalEdgeRising, int delay=-1, int width=-1);
+    void setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge, int delay, int width);
     bool isAcqRunning() const;
   private:
     Camera(const Camera&);

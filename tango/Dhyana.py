@@ -178,11 +178,11 @@ class DhyanaClass(PyTango.DeviceClass):
         [[PyTango.DevString, "Attribute name"],
          [PyTango.DevVarStringArray, "Authorized String value list"]],
         'setOutputSignal':
-        [[PyTango.DevVarLongArray, "[port(0-2), signal(0-IN,1-EXPSTART,2-EXPGLOBAL,3-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)"],
+        [[PyTango.DevVarLongArray, "[port(0-2), signal(0-GROUND, 1-VCC, 2-IN, 3-EXPSTART, 4-EXPGLOBAL, 5-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)"],
          [PyTango.DevVoid]],
         'getOutputSignal':
          [[PyTango.DevLong,"port(0-2)"],
-         [PyTango.DevVarLongArray, "[signal(0-IN,1-EXPSTART,2-EXPGLOBAL,3-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)"]]
+         [PyTango.DevVarLongArray, "[signal(0-GROUND, 1-VCC, 2-IN, 3-EXPSTART, 4-EXPGLOBAL, 5-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)"]]
         }
 
     attr_list = {

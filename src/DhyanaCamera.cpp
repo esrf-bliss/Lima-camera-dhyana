@@ -1186,10 +1186,15 @@ void Camera::setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge,
 void Camera::getOutputSignal(int port, TucamSignal& signal, TucamSignalEdge& edge, int& delay, int& width)
 {
   DEB_MEMBER_FUNCT();
-  TUCAM_TRGOUT_ATTR tgroutAttr;
 
+  TUCAM_TRGOUT_ATTR tgroutAttr;
+  if (port <0 || port >2)
+    {
+      THROW_HW_ERROR(Error) << "Invalid output port number range is [0-2]";
+
+    }
   tgroutAttr.nTgrOutPort = port;
-  DEB_ALWAYS() << port;
+  DEB_ALWAYS() << DEB_VAR1(port);
   
   if(TUCAMRET_SUCCESS != TUCAM_Cap_GetTriggerOut (m_opCam.hIdxTUCam, &tgroutAttr))
     {

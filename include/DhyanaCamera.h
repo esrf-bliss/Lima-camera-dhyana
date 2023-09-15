@@ -89,7 +89,7 @@ public:
     enum TucamSignal
     {
       SignalGround = TUOPT_GND,       // use low
-      SignalVCC = TUOPT_VCC,          //use hifh
+      SignalVCC = TUOPT_VCC,          //use high
       SignalTrigIn = TUOPT_IN,        //copy of the trigger IN
       SignalStart = TUOPT_EXPSTART,   // Exposure start (rolling)
       SignalGlobal = TUOPT_EXPGLOBAL, // Global exposure
@@ -177,7 +177,7 @@ public:
     void getTriggerEdge(TucamTriggerEdge& edge){edge = m_tucam_trigger_edge_mode;};
     void setTriggerEdge(TucamTriggerEdge edge){m_tucam_trigger_edge_mode = edge;};
     void getOutputSignal(int port, TucamSignal& signal, TucamSignalEdge& edge, int& delay, int& width);
-    void setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge=SignalEdgeRising, int delay=-1, int width=-1);
+    void setOutputSignal(int port, TucamSignal signal, TucamSignalEdge edge, int delay, int width);
     
     bool isAcqRunning() const;
 
