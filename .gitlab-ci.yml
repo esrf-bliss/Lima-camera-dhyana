@@ -14,7 +14,7 @@ stages:
 build-linux:
   <<: *build-conda
   script:
-    - conda mambabuild ./conda/camera --output-folder=dist/ c http://bcu-ci.esrf.fr/stable
+    - conda mambabuild ./conda/camera --output-folder=dist/ -c http://bcu-ci.esrf.fr/stable
   tags:
     - linux
 
