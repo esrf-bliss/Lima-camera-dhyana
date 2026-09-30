@@ -34,101 +34,97 @@
 # project :     TANGO Device Server
 #
 #=============================================================================
+from tango import AttrWriteType, DevState
+from tango.server import Device, attribute, command, device_property
 
-import PyTango
 from lima import core
 from lima import dhyana as DhyanaAcq
 from lima.server import AttrHelper
 
 
-class Dhyana(PyTango.LatestDeviceImpl):
+class Dhyana(Device):
 
     core.DEB_CLASS(core.DebModule.DebModApplication, 'LimaCCDs')
 
+    # ------------------------------------------------------------------
+    #    Static properties
+    # ------------------------------------------------------------------
+    _DhyanaCam = None
+    """Reference to Lima dhyana camera binding"""
+    _DhyanaInterface = None
+    """Reference to Lima dhyana interface binding"""
 
-#------------------------------------------------------------------
-#    Device constructor
-#------------------------------------------------------------------
-    def __init__(self,*args) :
-        PyTango.LatestDeviceImpl.__init__(self,*args)
-        # dictionnaries to be used with AttrHelper.get_attr_4u
-        self.__TriggerMode = {'STANDARD':  _DhyanaCam.TucamTriggerMode.TriggerStandard,
-                             'GLOBAL': _DhyanaCam.TucamTriggerMode.TriggerGlobal,
-                             'SYNCHRONOUS':  _DhyanaCam.TucamTriggerMode.TriggerSynchronous
-                              }
-        self.__TriggerEdge = {'RISING': _DhyanaCam.TucamTriggerEdge.EdgeRising,
-                              'FALLING': _DhyanaCam.TucamTriggerEdge.EdgeFalling
-        }
-        self.__GlobalGain = {'HDR': _DhyanaCam.TucamGain.GainHDR,
-                             'HIGH': _DhyanaCam.TucamGain.GainHigh,
-                             'LOW': _DhyanaCam.TucamGain.GainLow
-                             }
-        # self.__Attribute2FunctionBase = {
-        # }
-        
-        self.init_device()
+    _TriggerMode = {
+        'STANDARD': DhyanaAcq.Camera.TucamTriggerMode.TriggerStandard,
+        'GLOBAL': DhyanaAcq.Camera.TucamTriggerMode.TriggerGlobal,
+        'SYNCHRONOUS': DhyanaAcq.Camera.TucamTriggerMode.TriggerSynchronous,
+    }
+    _TriggerEdge = {
+        'RISING': DhyanaAcq.Camera.TucamTriggerEdge.EdgeRising,
+        'FALLING': DhyanaAcq.Camera.TucamTriggerEdge.EdgeFalling,
+    }
+    _GlobalGain = {
+        'HDR': DhyanaAcq.Camera.TucamGain.GainHDR,
+        'HIGH': DhyanaAcq.Camera.TucamGain.GainHigh,
+        'LOW': DhyanaAcq.Camera.TucamGain.GainLow,
+    }
 
-#------------------------------------------------------------------
-#    Device destructor
-#------------------------------------------------------------------
-    def delete_device(self):
-        pass
+    # ------------------------------------------------------------------
+    #    Device properties (initial hardware configuration only - the
+    #    live attributes of the same name below read/write the camera
+    #    directly, they don't share storage with these)
+    # ------------------------------------------------------------------
+    internal_trigger_timer = device_property(dtype=int, default_value=999)
+    temperature_target = device_property(dtype=float, default_value=-10)
+    trigger_mode = device_property(dtype=str, default_value="STANDARD")
+    trigger_edge = device_property(dtype=str, default_value="RISING")
 
-#------------------------------------------------------------------
-#    Device initialization
-#------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    #    Device initialization
+    # ------------------------------------------------------------------
     @core.DEB_MEMBER_FUNCT
     def init_device(self):
-        self.set_state(PyTango.DevState.ON)
-        self.get_device_properties(self.get_device_class())
+        Device.init_device(self)
+
+        # Leagcy code used by AttrHelper.get_attr_string_value_list
+        self.__TriggerMode = self._TriggerMode
+        self.__TriggerEdge = self._TriggerEdge
+        self.__GlobalGain = self._GlobalGain
 
         if self.temperature_target:
-            _DhyanaCam.setTemperatureTarget(self.temperature_target)
+            self._DhyanaCam.setTemperatureTarget(self.temperature_target)
         if self.trigger_mode:
-            _DhyanaCam.setTriggerMode(self.__TriggerMode[self.trigger_mode.upper()])
+            self._DhyanaCam.setTriggerMode(self._TriggerMode[self.trigger_mode.upper()])
         if self.trigger_edge:
-            _DhyanaCam.setTriggerEdge(self.__TriggerEdge[self.trigger_edge.upper()])
+            self._DhyanaCam.setTriggerEdge(self._TriggerEdge[self.trigger_edge.upper()])
 
-#------------------------------------------------------------------
-#    getAttrStringValueList command:
-#
-#    Description: return a list of authorized values if any
-#    argout: DevVarStringArray
-#------------------------------------------------------------------
+        self.set_state(DevState.ON)
+
+    # ------------------------------------------------------------------
+    #    Commands
+    # ------------------------------------------------------------------
+    @command(dtype_in=str, dtype_out=(str,))
     @core.DEB_MEMBER_FUNCT
     def getAttrStringValueList(self, attr_name):
-        #use AttrHelper
         return AttrHelper.get_attr_string_value_list(self, attr_name)
 
-#------------------------------------------------------------------
-#    getOutputSignal command:
-#
-#    Description: return the configuration of the output port N
-#    argin:  port N from 0 to 2
-#    argout: DevVarLongArray:
-#          signal(0-GROUND, 1-VCC, 2-IN, 3-EXPSTART, 4-EXPGLOBAL, 5-READEND),
-#          edge  (0-RISING, 1-FALLING),
-#          delay (in ms),
-#          width (in ms)
-#------------------------------------------------------------------
+    @command(
+        dtype_in=int,
+        doc_in="port(0-2)",
+        dtype_out=(int,),
+        doc_out="[signal(0-GROUND, 1-VCC, 2-IN, 3-EXPSTART, 4-EXPGLOBAL, 5-READEND), "
+        "edge(0-RISING,1-FALLING), delay(in ms), width(in ms)",
+    )
     @core.DEB_MEMBER_FUNCT
     def getOutputSignal(self, port):
-        print (port)
-        signal, edge, delay, width = _DhyanaCam.getOutputSignal(port)
+        signal, edge, delay, width = self._DhyanaCam.getOutputSignal(port)
         return [signal.value, edge.value, delay, width]
-    
-#------------------------------------------------------------------
-#    setOutputSignal command:
-#
-#    Description: return the configuration of the output port N
-#    argin:  void
-#    argout: DevVarLongArray:
-#          port  (0-2)
-#          signal(0-GROUND, 1-VCC, 2-IN, 3-EXPSTART, 4-EXPGLOBAL, 5-READEND),
-#          edge  (0-RISING, 1-FALLING),
-#          delay (in ms),
-#          width (in ms)
-#------------------------------------------------------------------
+
+    @command(
+        dtype_in=(int,),
+        doc_in="[port(0-2), signal(0-GROUND, 1-VCC, 2-IN, 3-EXPSTART, 4-EXPGLOBAL, "
+        "5-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)",
+    )
     @core.DEB_MEMBER_FUNCT
     def setOutputSignal(self, signal_conf):
         port = signal_conf[0]
@@ -137,155 +133,124 @@ class Dhyana(PyTango.LatestDeviceImpl):
         delay = signal_conf[3]
         width = signal_conf[4]
 
-        _DhyanaCam.setOutputSignal(port, signal, edge, delay, width)
-        
-#==================================================================
-#
-#    Dhyana read/write attribute methods
-#
-#==================================================================
-    def __getattr__(self,name) :
-        #use AttrHelper
-        return AttrHelper.get_attr_4u(self,name,_DhyanaCam)
+        self._DhyanaCam.setOutputSignal(port, signal, edge, delay, width)
 
+    # ------------------------------------------------------------------
+    #    Attributes with a name colliding with a device_property
+    # ------------------------------------------------------------------
+    _temperature_target_fget, _temperature_target_fset = AttrHelper.make_fget_fset(
+        "temperature_target", lambda self: self._DhyanaCam
+    )
+    temperature_target_attr = attribute(
+        name="temperature_target",
+        dtype=float,
+        access=AttrWriteType.READ_WRITE,
+        unit="C",
+        doc="Temperature target",
+        fget=_temperature_target_fget,
+        fset=_temperature_target_fset,
+    )
 
-#==================================================================
-#
-#    DhyanaClass class definition
-#
-#==================================================================
-class DhyanaClass(PyTango.DeviceClass):
+    _trigger_mode_fget, _trigger_mode_fset = AttrHelper.make_fget_fset(
+        "trigger_mode", lambda self: self._DhyanaCam, enum=_TriggerMode
+    )
+    trigger_mode_attr = attribute(
+        name="trigger_mode",
+        dtype=str,
+        access=AttrWriteType.READ_WRITE,
+        unit="mode",
+        doc="Tucam trigger mode (standard, global or synchronize)",
+        fget=_trigger_mode_fget,
+        fset=_trigger_mode_fset,
+    )
 
-    class_property_list = {}
+    _trigger_edge_fget, _trigger_edge_fset = AttrHelper.make_fget_fset(
+        "trigger_edge", lambda self: self._DhyanaCam, enum=_TriggerEdge
+    )
+    trigger_edge_attr = attribute(
+        name="trigger_edge",
+        dtype=str,
+        access=AttrWriteType.READ_WRITE,
+        unit="edge",
+        doc="Detection edge mode, rising or falling",
+        fget=_trigger_edge_fget,
+        fset=_trigger_edge_fset,
+    )
 
-    device_property_list = {
-        'internal_trigger_timer':
-        [PyTango.DevLong,
-         "Internal Trigger Timer",999],
-        'temperature_target':
-        [PyTango.DevDouble,
-         "Temperature set point", -10],
-        'trigger_mode':
-        [PyTango.DevString,
-         "Tucam trigger mode", "STANDARD"],
-        'trigger_edge':
-        [PyTango.DevString,
-         "trigger edge", "RISING"],
-        }
+    # ------------------------------------------------------------------
+    #    Attributes fully dispatched by naming convention
+    # ------------------------------------------------------------------
+    _temperature_fget, _ = AttrHelper.make_fget_fset("temperature", lambda self: self._DhyanaCam)
+    temperature = attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        unit="C",
+        doc="Camera temperature",
+        fget=_temperature_fget,
+    )
 
-    cmd_list = {
-        'getAttrStringValueList':
-        [[PyTango.DevString, "Attribute name"],
-         [PyTango.DevVarStringArray, "Authorized String value list"]],
-        'setOutputSignal':
-        [[PyTango.DevVarLongArray, "[port(0-2), signal(0-GROUND, 1-VCC, 2-IN, 3-EXPSTART, 4-EXPGLOBAL, 5-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)"],
-         [PyTango.DevVoid]],
-        'getOutputSignal':
-         [[PyTango.DevLong,"port(0-2)"],
-         [PyTango.DevVarLongArray, "[signal(0-GROUND, 1-VCC, 2-IN, 3-EXPSTART, 4-EXPGLOBAL, 5-READEND), edge(0-RISING,1-FALLING), delay(in ms), width(in ms)"]]
-        }
+    _tucam_version_fget, _ = AttrHelper.make_fget_fset(
+        "tucam_version", lambda self: self._DhyanaCam
+    )
+    tucam_version = attribute(
+        dtype=str,
+        access=AttrWriteType.READ,
+        doc="TuCam SDK version",
+        fget=_tucam_version_fget,
+    )
 
-    attr_list = {
-        'temperature':
-        [[PyTango.DevDouble,
-          PyTango.SCALAR,
-          PyTango.READ],
-         {
-             'unit': 'C',
-             'format': '',
-             'description': 'Camera temperature',
-         }],        
-        'tucam_version':
-        [[PyTango.DevString,
-          PyTango.SCALAR,
-          PyTango.READ],
-         {
-             'unit': 'N/A',
-             'format': '',
-             'description': 'TuCam SDK version',
-         }],
-        'firmware_version':
-        [[PyTango.DevString,
-          PyTango.SCALAR,
-          PyTango.READ],
-         {
-             'unit': 'N/A',
-             'format': '',
-             'description': 'Camera firmware version',
-         }],        
-        'temperature_target':
-        [[PyTango.DevDouble,
-          PyTango.SCALAR,
-          PyTango.READ_WRITE],
-         {
-             'unit': 'C',
-             'format': '',
-             'description': 'Temperature target',
-         }],
-        'global_gain':
-        [[PyTango.DevString,
-          PyTango.SCALAR,
-          PyTango.READ_WRITE],
-         {
-             'unit': 'n/a',
-             'format': '',
-             'description': 'Global gain setting',
-         }],        
-        'fan_speed':
-        [[PyTango.DevUShort,
-          PyTango.SCALAR,
-          PyTango.READ_WRITE],
-         {
-             'unit': 'level',
-             'format': '',
-             'description': 'FAN speed',
-         }],        
-        'trigger_mode':
-        [[PyTango.DevString,
-          PyTango.SCALAR,
-          PyTango.READ_WRITE],
-         {
-             'unit': 'mode',
-             'format': '',
-             'description': 'Tucam trigger mode (standard, global or synchronize)',
-         }],        
-        'trigger_edge':
-        [[PyTango.DevString,
-          PyTango.SCALAR,
-          PyTango.READ_WRITE],
-         {
-             'unit': 'edge',
-             'format': '',
-             'description': 'Detection edge mode, rising or falling',
-         }],        
+    _firmware_version_fget, _ = AttrHelper.make_fget_fset(
+        "firmware_version", lambda self: self._DhyanaCam
+    )
+    firmware_version = attribute(
+        dtype=str,
+        access=AttrWriteType.READ,
+        doc="Camera firmware version",
+        fget=_firmware_version_fget,
+    )
 
-    }
+    _global_gain_fget, _global_gain_fset = AttrHelper.make_fget_fset(
+        "global_gain", lambda self: self._DhyanaCam, enum=_GlobalGain
+    )
+    global_gain = attribute(
+        dtype=str,
+        access=AttrWriteType.READ_WRITE,
+        doc="Global gain setting",
+        fget=_global_gain_fget,
+        fset=_global_gain_fset,
+    )
 
-    def __init__(self,name) :
-        PyTango.DeviceClass.__init__(self,name)
-        self.set_type(name)
+    _fan_speed_fget, _fan_speed_fset = AttrHelper.make_fget_fset(
+        "fan_speed", lambda self: self._DhyanaCam
+    )
+    fan_speed = attribute(
+        dtype=int,
+        access=AttrWriteType.READ_WRITE,
+        unit="level",
+        doc="FAN speed",
+        fget=_fan_speed_fget,
+        fset=_fan_speed_fset,
+    )
+
 
 #----------------------------------------------------------------------------
 # Plugins
 #----------------------------------------------------------------------------
-_DhyanaCam = None
-_DhyanaInterface = None
 
-def get_control(**keys) :
-    global _DhyanaCam
-    global _DhyanaInterface
+def get_control(_Dhyana=Dhyana, _Camera=DhyanaAcq.Camera, _Interface=DhyanaAcq.Interface, **keys):
+    camera = _Dhyana._DhyanaCam
+    interface = _Dhyana._DhyanaInterface
 
     internal_trigger_timer = int(keys.get('internal_trigger_timer', 999))
 
-    # print ("Dhyana internal_trigger_timer:", internal_trigger_timer)
-    
-    # all properties are passed as string from LimaCCDs device get_control helper
-    # so need to be converted to correct type
+    if camera is None:
+        camera = _Camera(internal_trigger_timer)
+        interface = _Interface(camera)
 
-    if _DhyanaCam is None:
-        _DhyanaCam = DhyanaAcq.Camera(internal_trigger_timer)
-        _DhyanaInterface = DhyanaAcq.Interface(_DhyanaCam)
-    return core.CtControl(_DhyanaInterface)
+    _Dhyana._DhyanaCam = camera
+    _Dhyana._DhyanaInterface = interface
+
+    return core.CtControl(interface)
 
 def get_tango_specific_class_n_device():
-    return DhyanaClass,Dhyana
+    return Dhyana.TangoClassClass, Dhyana
