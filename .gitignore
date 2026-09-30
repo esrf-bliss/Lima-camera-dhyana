@@ -36,7 +36,8 @@
 .vscode
 
 # build
-build
+build*
+pyproject.toml
 
 # dhyana
 dhyana

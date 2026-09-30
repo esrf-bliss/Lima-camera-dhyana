@@ -1,7 +1,7 @@
 ###########################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-#  Copyright (C) : 2009-2023
+#  Copyright (C) : 2009-2026
 #  European Synchrotron Radiation Facility
 #  CS40220 38043 Grenoble Cedex 9
 #  FRANCE
@@ -22,6 +22,6 @@
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
-from Lima import Core
-from limadhyana import Dhyana as _D
+from lima import core
+from lima.limadhyana import Dhyana as _D
 globals().update(_D.__dict__)

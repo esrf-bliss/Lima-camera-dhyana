@@ -1,7 +1,7 @@
 ###########################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-#  Copyright (C) : 2009-2023
+#  Copyright (C) : 2009-2026
 #  European Synchrotron Radiation Facility
 #  CS40220 38043 Grenoble Cedex 9
 #  FRANCE
@@ -36,32 +36,32 @@
 #=============================================================================
 
 import PyTango
-from Lima import Core
-from Lima import Dhyana as DhyanaAcq
-from Lima.Server import AttrHelper
+from lima import core
+from lima import dhyana as DhyanaAcq
+from lima.server import AttrHelper
 
 
-class Dhyana(PyTango.Device_4Impl):
+class Dhyana(PyTango.LatestDeviceImpl):
 
-    Core.DEB_CLASS(Core.DebModApplication, 'LimaCCDs')
+    core.DEB_CLASS(core.DebModule.DebModApplication, 'LimaCCDs')
 
 
 #------------------------------------------------------------------
 #    Device constructor
 #------------------------------------------------------------------
     def __init__(self,*args) :
-        PyTango.Device_4Impl.__init__(self,*args)
+        PyTango.LatestDeviceImpl.__init__(self,*args)
         # dictionnaries to be used with AttrHelper.get_attr_4u
-        self.__TriggerMode = {'STANDARD':  _DhyanaCam.TriggerStandard,
-                             'GLOBAL': _DhyanaCam.TriggerGlobal,
-                             'SYNCHRONOUS':  _DhyanaCam.TriggerSynchronous
+        self.__TriggerMode = {'STANDARD':  _DhyanaCam.TucamTriggerMode.TriggerStandard,
+                             'GLOBAL': _DhyanaCam.TucamTriggerMode.TriggerGlobal,
+                             'SYNCHRONOUS':  _DhyanaCam.TucamTriggerMode.TriggerSynchronous
                               }
-        self.__TriggerEdge = {'RISING': _DhyanaCam.EdgeRising,
-                              'FALLING': _DhyanaCam.EdgeFalling
+        self.__TriggerEdge = {'RISING': _DhyanaCam.TucamTriggerEdge.EdgeRising,
+                              'FALLING': _DhyanaCam.TucamTriggerEdge.EdgeFalling
         }
-        self.__GlobalGain = {'HDR': _DhyanaCam.GainHDR,
-                             'HIGH': _DhyanaCam.GainHigh,
-                             'LOW': _DhyanaCam.GainLow
+        self.__GlobalGain = {'HDR': _DhyanaCam.TucamGain.GainHDR,
+                             'HIGH': _DhyanaCam.TucamGain.GainHigh,
+                             'LOW': _DhyanaCam.TucamGain.GainLow
                              }
         # self.__Attribute2FunctionBase = {
         # }
@@ -77,7 +77,7 @@ class Dhyana(PyTango.Device_4Impl):
 #------------------------------------------------------------------
 #    Device initialization
 #------------------------------------------------------------------
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def init_device(self):
         self.set_state(PyTango.DevState.ON)
         self.get_device_properties(self.get_device_class())
@@ -95,7 +95,7 @@ class Dhyana(PyTango.Device_4Impl):
 #    Description: return a list of authorized values if any
 #    argout: DevVarStringArray
 #------------------------------------------------------------------
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def getAttrStringValueList(self, attr_name):
         #use AttrHelper
         return AttrHelper.get_attr_string_value_list(self, attr_name)
@@ -111,11 +111,11 @@ class Dhyana(PyTango.Device_4Impl):
 #          delay (in ms),
 #          width (in ms)
 #------------------------------------------------------------------
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def getOutputSignal(self, port):
         print (port)
         signal, edge, delay, width = _DhyanaCam.getOutputSignal(port)
-        return [signal, edge, delay, width]
+        return [signal.value, edge.value, delay, width]
     
 #------------------------------------------------------------------
 #    setOutputSignal command:
@@ -129,11 +129,11 @@ class Dhyana(PyTango.Device_4Impl):
 #          delay (in ms),
 #          width (in ms)
 #------------------------------------------------------------------
-    @Core.DEB_MEMBER_FUNCT
-    def setOutputSignal(self, signal_conf):        
+    @core.DEB_MEMBER_FUNCT
+    def setOutputSignal(self, signal_conf):
         port = signal_conf[0]
-        signal = int(signal_conf[1])
-        edge = int(signal_conf[2])
+        signal = DhyanaAcq.Camera.TucamSignal(int(signal_conf[1]))
+        edge = DhyanaAcq.Camera.TucamSignalEdge(int(signal_conf[2]))
         delay = signal_conf[3]
         width = signal_conf[4]
 
@@ -285,7 +285,7 @@ def get_control(**keys) :
     if _DhyanaCam is None:
         _DhyanaCam = DhyanaAcq.Camera(internal_trigger_timer)
         _DhyanaInterface = DhyanaAcq.Interface(_DhyanaCam)
-    return Core.CtControl(_DhyanaInterface)
+    return core.CtControl(_DhyanaInterface)
 
 def get_tango_specific_class_n_device():
     return DhyanaClass,Dhyana
