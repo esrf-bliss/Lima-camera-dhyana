@@ -22,7 +22,7 @@ requirements:
     - ninja
     - lima-core
   run:
-    - lima-tango-server
+    - lima-tango-server >=1.13.0*
     - lima-camera-dhyana
 
 about:
